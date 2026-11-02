@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  color: #fff;
+}
+
+a { text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+/* # container layout */
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* # Header */
+header {
+  padding: 40px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header .logo {
+  text-transform: uppercase;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+header nav ul {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+header nav ul li a {
+  color: #fff;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+header nav ul li:not(.btn) a:hover {
+  border-bottom: 3px solid #fff;
+}
+
+header nav ul li.btn a {
+  background: #fff;
+  color: #121212;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+header nav ul li.btn a:hover {
+  background: #808080;
+  color: #fff;
+}
+
+/* # Game Section */
+.trending {
+  margin-top: 40px;
+}
+
+.trending h3 {
+  font-weight: 700;
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.trending .see-all {
+  float: right;
+  background: #252525;
+  border-radius: 6px;
+  padding: 10px 20px;
+  transition: 0.3s;
+}
+
+.trending .see-all:hover {
+  background: #404040;
+  transform: scale(1.05);
+}
+
+.trending .games {
+  display: grid;              /* # switched to grid for equal alignment */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+/* # each game block */
+.block {
+  background: #1a1a1a;
+  border-radius: 15px;
+  overflow: hidden;
+  text-align: center;
+  padding: 15px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  animation: fadeInUp 1s ease forwards;
+}
+
+/* # fade-in animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* # hover zoom */
+.block:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(255,255,255,0.2);
+}
+
+/* # unified image height */
+.block img {
+  height: 220px;
+  width: 100%;
+  object-fit: cover;
+  border-bottom: 2px solid #333;
+}
+
+/* # game name + fire icon */
+.block span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  margin: 10px 0;
+  text-transform: uppercase;
+  gap: 6px;
+}
+
+.fire-icon {
+  width: 20px;
+  height: 20px;
+  padding: 15px;
+  animation: pulse 1.5s infinite;  /* # glowing animation */
+}
+
+/* # glowing fire animation */
+@keyframes pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px #ff4500); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 10px #ff7b00); transform: scale(1.1); }
+}
+
+.block p {
+  color: #aaa;
+  font-size: 15px;
+  border-top: 1px solid #333;
+  padding: 8px 0 15px;
+}
+
+/* # Responsive tweaks */
+@media (max-width: 768px) {
+  header nav ul { gap: 15px; }
+  .block img { height: 180px; }
+  .trending h3 { font-size: 24px; }
+}

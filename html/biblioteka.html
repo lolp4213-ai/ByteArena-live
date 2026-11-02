@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Каталог ігор ByteArena">
+  <title>Каталог ігор — ByteArena</title>
+  <link rel="stylesheet" href="/css/biblioteka.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <button class="menu-toggle" aria-label="Відкрити меню" aria-expanded="false">☰</button>
+    <nav class="site-nav">
+      <a href="/bytearena">Головна</a>
+      <a class="active" href="/biblioteka">Каталог</a>
+      <a href="/portfolio">Кошик</a>
+      <a href="/news">Новини</a>
+      <a href="/compare">Порівняння</a>
+      <a href="/about">Про нас</a>
+      <a class="nav-button" href="/login">Увійти</a>
+    </nav>
+  </header>
+
+  <main class="catalog container">
+    <section class="catalog-hero">
+      <div>
+        <p class="eyebrow">BYTEARENA STORE</p>
+        <h1>Знайди свою наступну пригоду</h1>
+        <p>Популярні ігри, чесні ціни та зручна бібліотека в одному місці.</p>
+      </div>
+      <a class="button-primary" href="#games-list">Переглянути ігри</a>
+    </section>
+
+    <section class="catalog-toolbar" aria-label="Фільтри каталогу">
+      <label>Пошук
+        <input id="game-search" type="search" placeholder="Назва або опис..." autocomplete="off">
+      </label>
+      <label>Жанр
+        <select id="game-genre"><option value="all">Усі жанри</option></select>
+      </label>
+      <label>Сортування
+        <select id="game-sort">
+          <option value="popular">Популярні</option>
+          <option value="rating">За рейтингом</option>
+          <option value="price-low">Від дешевих</option>
+          <option value="price-high">Від дорогих</option>
+        </select>
+      </label>
+    </section>
+
+    <section id="games-list" class="games-grid" aria-live="polite">
+      <p>Завантаження каталогу...</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">© 2026 ByteArena. Ігри, які хочеться проходити.</footer>
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/basket.js"></script>
+  <script src="/static/js/games.js"></script>
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.site-nav');
+    menuButton.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', open);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+} 
+
+
+body{
+    background: #121212;
+    color: white;
+
+}
+.container {
+    width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    padding: 50px 0;
+}
+
+header .logo{
+    text-transform: uppercase;
+    font-size: 29px;
+    color: white;
+    font-weight: 900;
+    float: left; 
+    letter-spacing: 1px;
+    padding: 0px 20px;
+
+    
+    
+    
+}
+
+header nav {
+    float: right;
+    width: 50%;
+    padding: 0;
+}
+
+header nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+}
+
+header nav ul li{
+    display: inline-block;
+}
+
+header nav ul li a{
+    color: white;
+}
+
+header nav ul li.button a {
+    background: #fff;
+    color: #121212;
+    padding: 10px 25px;
+    border-radius: 15px;
+    font-weight: 600;
+    transition: all 500ms ease;
+}
+
+header nav ul li.button a:hover {
+    background: #808080;
+    color: #fff;
+}
+
+header nav ul li:not(.btn) a:hover{
+    border-bottom: 5px solid #fff;
+    transition: .3s;
+}
+
+
+header nav ul li.btn a{
+    background: #fff;
+    color: #121212;
+    padding: 10px 25px;
+    border-radius: 15px;
+    font-weight: 600;
+    transition: all 500ms ease;
+}
+
+header nav ul li.btn a:hover{
+    background: #808080;
+    color: #fff;
+}
+
+
+a{
+    text-decoration: none;
+}
+
+img{
+    max-width: 100%;
+}
+
+
+.wrapper {
+    position: fixed;              /* фіксуємо відносно екрана */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* зсуваємо рівно в центр */
+
+    width: 420px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 30px 40px;
+}
+
+.wrapper h1{
+    font-size: 36px;
+    text-align: center;
+}
+
+.wrapper .input-box{
+    width: 100%;
+    height: 50px;
+    margin: 30px 0;
+    position: relative;
+}
+
+.input-box input{
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    border: 2px solid rgb(0, 0, 0, 2);
+    border-radius: 40px;
+    font-size: 16px;
+    color: #ffffff;
+    padding: 20px 45px 20px 20px;
+}
+
+.input-box input::placeholder{
+    color: white;
+}
+
+.input-box i{
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+}
+.remember{
+    display: flex;
+    justify-content: space-between;
+    font-size: 14.5px;
+    margin: -15px 0 15px ;
+}
+.remember label input{
+    accent-color: white;
+    margin-right: 3px;
+
+}
+
+.remember a{
+    color: white;
+    text-decoration: none;
+}
+.remember a:hover{
+    text-decoration: underline;
+}
+.wrapper .btn{
+    width: 100%;
+    height: 50px;
+    border: none;
+    outline: none;
+    background: white;
+    border-radius: 40px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+
+}
+
+.wrapper .register-link{
+    text-align: center;
+    margin: 20px 0;
+    font-size: 14.5px;
+}
+
+.register-link p a{
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+.register-link p a:hover{
+    text-decoration: underline;
+    color: green;
+} 

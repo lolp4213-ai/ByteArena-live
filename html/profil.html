@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Профіль — ByteArena</title>
+  <link rel="stylesheet" href="/css/profil.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <div id="profile-background" class="profile-background" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <button class="menu-toggle" type="button" aria-label="Відкрити меню" aria-expanded="false">☰</button>
+    <nav class="site-nav">
+      <a href="/bytearena">Головна</a>
+      <a href="/biblioteka">Каталог</a>
+      <a href="/portfolio">Кошик</a>
+      <a href="/news">Новини</a>
+      <a class="active" href="/profil">Профіль</a>
+      <a class="nav-button" href="/logout">Вийти</a>
+    </nav>
+  </header>
+
+  <main class="profile-layout">
+    <aside class="profile-card">
+      <div class="avatar" id="profile-avatar" aria-hidden="true">B</div>
+      <h1 id="profile-name">Профіль</h1>
+      <p id="profile-username">@user</p>
+      <p id="profile-bio" class="profile-bio"></p>
+      <a class="button-secondary" href="/biblioteka">До каталогу</a>
+      <div class="profile-stats">
+        <div><strong id="order-count">0</strong><span>Замовлень</span></div>
+        <div><strong>8+</strong><span>Ігор у каталозі</span></div>
+      </div>
+    </aside>
+
+    <section class="profile-content">
+      <div class="section-heading">
+        <p class="eyebrow">PERSONAL AREA</p>
+        <h2>Твій профіль</h2>
+        <p>Тут зберігається історія твоїх замовлень.</p>
+      </div>
+      <section class="panel">
+        <h2>Основні дані</h2>
+        <form id="profile-form" class="profile-form">
+          <label>Ім'я для відображення
+            <input id="display-name" maxlength="32" required>
+          </label>
+          <label>Про себе
+            <textarea id="bio" maxlength="160" rows="3" placeholder="Розкажи щось про себе"></textarea>
+          </label>
+          <div class="form-row">
+            <label>Колір аватара
+              <input id="avatar-color" type="color" value="#e63946">
+            </label>
+            <label>Тема
+              <select id="theme">
+                <option value="dark">Темна</option>
+                <option value="light">Світла</option>
+              </select>
+            </label>
+          </div>
+          <button class="button-primary" type="submit">Зберегти зміни</button>
+          <p id="profile-message" class="form-message" role="status"></p>
+        </form>
+      </section>
+      <section class="panel media-panel">
+        <h2>Налаштування профілю</h2>
+        <p class="panel-description">Зміни аватар і фонове оформлення профілю.</p>
+        <div class="media-settings">
+          <label>Власний аватар
+            <input id="avatar-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+            <small>JPG, PNG, WEBP або GIF, до 8 МБ.</small>
+          </label>
+          <label>Фонове фото або відео
+            <input id="background-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/ogg">
+            <small>Фото або MP4/WEBM/OGG, до 30 МБ.</small>
+          </label>
+          <p id="media-message" class="form-message" role="status"></p>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Історія замовлень</h2>
+        <div id="order-list" class="order-list">
+          <p class="muted">Завантаження...</p>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Список бажаного <span id="wishlist-count"></span></h2>
+        <div id="wishlist-list" class="order-list"><p class="muted">Завантаження...</p></div>
+      </section>
+      <section class="panel">
+        <h2>Сповіщення</h2>
+        <div id="notification-list" class="order-list"><p class="muted">Завантаження...</p></div>
+      </section>
+      <section class="panel">
+        <h2>Досягнення</h2>
+        <div id="achievement-list" class="order-list"><p class="muted">Завантаження...</p></div>
+      </section>
+      <section class="panel quick-links">
+        <h2>Швидкі дії</h2>
+        <a href="/biblioteka">Переглянути каталог <span>→</span></a>
+        <a href="/portfolio">Відкрити кошик <span>→</span></a>
+        <a href="/logout">Вийти з акаунта <span>→</span></a>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">© 2026 ByteArena</footer>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.site-nav');
+    menuButton.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', open);
+    });
+
+    function applyProfileMedia(settings) {
+      const avatar = document.getElementById('profile-avatar');
+      const background = document.getElementById('profile-background');
+      avatar.replaceChildren();
+      if (settings.avatar_url) {
+        const image = document.createElement('img');
+        image.src = settings.avatar_url;
+        image.alt = '';
+        avatar.appendChild(image);
+        const navAvatar = document.querySelector('.site-nav .profile-button');
+        if (navAvatar) {
+          let navImage = navAvatar.querySelector('.profile-button-image');
+          if (!navImage) {
+            navImage = document.createElement('img');
+            navImage.className = 'profile-button-image';
+            navImage.alt = '';
+            navAvatar.appendChild(navImage);
+          }
+          navImage.src = settings.avatar_url;
+          navAvatar.classList.add('has-avatar');
+        }
+      } else {
+        avatar.textContent = settings.display_name.charAt(0).toUpperCase();
+        const navAvatar = document.querySelector('.site-nav .profile-button');
+        if (navAvatar) {
+          const navImage = navAvatar.querySelector('.profile-button-image');
+          if (navImage) navImage.remove();
+          navAvatar.classList.remove('has-avatar');
+        }
+      }
+      if (settings.background_url) {
+        if (settings.background_type === 'video') {
+          const video = document.createElement('video');
+          video.src = settings.background_url;
+          video.autoplay = true;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          background.replaceChildren(video);
+        } else {
+          background.replaceChildren();
+          background.style.backgroundImage = `url("${settings.background_url}")`;
+        }
+        background.classList.add('visible');
+      } else {
+        background.replaceChildren();
+        background.style.backgroundImage = '';
+        background.classList.remove('visible');
+      }
+    }
+
+    function uploadMedia(type, file) {
+      const message = document.getElementById('media-message');
+      const data = new FormData();
+      data.append('type', type);
+      data.append('file', file);
+      return fetch('/api/profile/media', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])
+        },
+        body: data
+      }).then(async response => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Не вдалося завантажити файл.');
+        applyProfileMedia(result.profile);
+        message.textContent = 'Медіа оновлено.';
+        message.className = 'form-message success';
+      }).catch(error => {
+        message.textContent = error.message;
+        message.className = 'form-message error';
+      });
+    }
+
+    fetch('/api/profile').then(response => {
+      if (!response.ok) throw new Error('not authenticated');
+      return response.json();
+    }).then(profile => {
+      const settings = profile.profile;
+      document.getElementById('profile-name').textContent = settings.display_name;
+      document.getElementById('profile-username').textContent = '@' + profile.username;
+      document.getElementById('profile-bio').textContent = settings.bio;
+      document.getElementById('profile-avatar').textContent = settings.display_name.charAt(0).toUpperCase();
+      document.getElementById('profile-avatar').style.background = settings.avatar_color;
+      document.getElementById('display-name').value = settings.display_name;
+      document.getElementById('bio').value = settings.bio;
+      document.getElementById('avatar-color').value = settings.avatar_color;
+      document.getElementById('theme').value = settings.theme;
+      document.body.dataset.theme = settings.theme;
+      applyProfileMedia(settings);
+      document.getElementById('order-count').textContent = profile.orders.length;
+      const list = document.getElementById('order-list');
+      if (!profile.orders.length) {
+        list.innerHTML = '<p class="muted">Замовлень ще немає. Переглянь каталог і додай першу гру.</p>';
+        return;
+      }
+      list.innerHTML = profile.orders.map(order => `
+        <article class="order">
+          <div>
+            <strong>Замовлення #${order.id} · ${order.status || 'new'}</strong>
+            <span>${order.created_at}</span>
+            <small>${order.items.map(item => `${item.title || item.game} × ${item.count}`).join(', ')}</small>
+          </div>
+          <b>${order.total} грн</b>
+        </article>
+      `).join('');
+      document.getElementById('wishlist-count').textContent = `(${profile.wishlist_count})`;
+      Promise.all([fetch('/api/wishlist'), fetch('/api/notifications'), fetch('/api/achievements')])
+        .then(async responses => Promise.all(responses.map(response => response.json())))
+        .then(([wishlist, notifications, achievements]) => {
+          document.getElementById('wishlist-list').innerHTML = wishlist.length
+            ? wishlist.map(item => `<article class="order"><div><strong>${item.title}</strong><small>${item.genre} · ★ ${item.rating}</small></div><a class="button-secondary" href="/biblioteka">Каталог</a></article>`).join('')
+            : '<p class="muted">Список бажаного порожній.</p>';
+          document.getElementById('notification-list').innerHTML = notifications.length
+            ? notifications.map(item => `<article class="order"><div><strong>${item.title}</strong><small>${item.message}</small></div></article>`).join('')
+            : '<p class="muted">Нових сповіщень немає.</p>';
+          document.getElementById('achievement-list').innerHTML = achievements.length
+            ? achievements.map(item => `<article class="order"><div><strong>🏆 ${item.title}</strong><small>${item.created_at}</small></div></article>`).join('')
+            : '<p class="muted">Досягнень ще немає.</p>';
+        }).catch(() => {});
+    }).catch(() => { window.location.href = '/login'; });
+
+    document.getElementById('profile-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const message = document.getElementById('profile-message');
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])
+        },
+        body: JSON.stringify({
+          display_name: document.getElementById('display-name').value,
+          bio: document.getElementById('bio').value,
+          avatar_color: document.getElementById('avatar-color').value,
+          theme: document.getElementById('theme').value
+        })
+      });
+      message.textContent = response.ok ? 'Зміни збережено.' : 'Не вдалося зберегти зміни.';
+      message.className = response.ok ? 'form-message success' : 'form-message error';
+      if (response.ok) {
+        const settings = (await response.json()).profile;
+        document.getElementById('profile-name').textContent = settings.display_name;
+        document.getElementById('profile-bio').textContent = settings.bio;
+        document.getElementById('profile-avatar').textContent = settings.display_name.charAt(0).toUpperCase();
+        document.getElementById('profile-avatar').style.background = settings.avatar_color;
+        document.body.dataset.theme = settings.theme;
+        applyProfileMedia(settings);
+      }
+    });
+
+    document.getElementById('avatar-file').addEventListener('change', event => {
+      if (event.target.files[0]) uploadMedia('avatar', event.target.files[0]);
+    });
+    document.getElementById('background-file').addEventListener('change', event => {
+      if (event.target.files[0]) uploadMedia('background', event.target.files[0]);
+    });
+  </script>
+</body>
+</html>

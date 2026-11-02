@@ -1,0 +1,66 @@
+.profile-button {
+  display: inline-grid !important;
+  width: 42px;
+  height: 42px;
+  padding: 0 !important;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, .75);
+  border-radius: 50% !important;
+  background: #e63946 !important;
+  color: #fff !important;
+}
+
+.profile-button::before {
+  content: "👤";
+  font-size: 20px;
+  line-height: 1;
+}
+
+.profile-button.has-avatar::before {
+  content: "";
+}
+
+.profile-button-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+
+body[data-theme="light"] {
+  --background: #f3f5f9;
+  --surface: #ffffff;
+  --surface-light: #e8ecf3;
+  --text: #172033;
+  --muted: #596579;
+  background: var(--background) !important;
+  color: var(--text) !important;
+}
+
+body[data-theme="light"] .site-header,
+body[data-theme="light"] .site-nav,
+body[data-theme="light"] .catalog-hero,
+body[data-theme="light"] .panel,
+body[data-theme="light"] .game-card,
+body[data-theme="light"] .news-card,
+body[data-theme="light"] .comparison-card,
+body[data-theme="light"] .compare-bar {
+  color: var(--text);
+}
+
+body[data-theme="light"] input,
+body[data-theme="light"] select,
+body[data-theme="light"] textarea {
+  border-color: #cbd3df;
+  background: var(--surface);
+  color: var(--text);
+}
+
+body[data-theme="light"] .site-footer {
+  border-color: #d7dde7;
+}

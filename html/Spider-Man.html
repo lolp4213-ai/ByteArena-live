@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghost of Tsushima - Epic Games</title>
+  <link rel="stylesheet" href="/css/game-detail.css" />
+  <link rel="stylesheet" href="/css/auth.css" />
+    <style>
+    /* # background gradient animation */
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(-25deg, #270000, #000000, #270000, #000000);
+      background-size: 200% 400%;
+      animation: gradient 10s ease infinite;
+    }
+    @keyframes gradient {
+      0% { background-position: 50% 0%; }
+      50% { background-position: 50% 50%; }
+      100% { background-position: 50% 50%; }
+    }
+  </style>
+</head>
+
+<body>
+        <video autoplay muted loop id="bg-video">
+    <source src="/img/video11.mp4" type="video/mp4">
+    Ваш браузер не підтримує відео тег.
+     </video>
+  <!-- # Header navigation -->
+  <header class="container">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <nav>
+      <ul>
+        <li><a href="/bytearena">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/portfolio">Basket</a></li>
+  <li><a href="/news">News</a></li>
+  <li class="button"><a href="/register">Register</a></li>
+  <li class="btn"><a href="/login">Login</a></li>
+      </ul>
+    </nav>
+    </header>
+    
+      <!-- Game Banner (Video as background) -->
+      <div class="game-banner">
+        <video class="video" autoplay muted loop playsinline>
+          <source src="/img/video4.mp4" type="video/mp4" />
+        </video>
+      </div>
+    <!-- Game Info Section -->
+    <div class="game-info">
+      <!-- Game Details -->
+      <div class="details">
+        <h2>Spider-Man</h2>
+        <p>Spider-Man is an action-adventure game developed by Insomniac Games. Players take on the role of Peter Parker as he balances his life as a superhero and a regular citizen in New York City. With fluid web-swinging mechanics, engaging combat, and a compelling story, Spider-Man offers an immersive experience for fans of the Marvel universe.</p>
+        <p class="price">1499 UAH</p>
+
+        <!-- Action Buttons -->
+        <div class="buttons">
+          <button onclick="downloadFile('game4.torrent')" class="btn-primary">Download</button>
+          <button id="add-to-basket" class="btn-primary" type="button">Add to basket</button>
+        </div>
+      </div>
+
+      <!-- Rating & Platforms -->
+      <div class="rating">
+        <span>Rating:</span>
+        <div class="stars">★★★★☆</div>
+      </div>
+
+      <div class="platforms">
+        <span>PlayStation</span>
+        <span>PC</span>
+      </div>
+    </div>
+
+    <!-- Screenshot Gallery -->
+    <div class="gallery">
+      <img src="https://hitmarker.net/imager/news/1280861/1750687316_b0464c6958.webp" alt="Screenshot 1">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScivt3rSq7Yl_8n8HbjEpz9LC-M0Vwjmi79Q&s" alt="Screenshot 2">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSq_1rmxBPk6FhwlFXOeOY8uRm5WrZYtn5ctQ&s" alt="Screenshot 3">
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2025 Epic Games. All rights reserved.</p>
+  </div>
+
+</div>
+
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/basket.js"></script>
+<script>
+function animateBasketAdd() {
+  const btn = document.getElementById('add-to-basket');
+  const img = document.querySelector('.game-info .details img') || document.querySelector('.gallery img');
+  if (!img) return;
+  const clone = img.cloneNode(true);
+  const rect = img.getBoundingClientRect();
+  clone.style.position = 'fixed';
+  clone.style.left = rect.left + 'px';
+  clone.style.top = rect.top + 'px';
+  clone.style.width = img.width + 'px';
+  clone.style.height = img.height + 'px';
+  clone.style.zIndex = 9999;
+  clone.style.transition = 'all 0.8s cubic-bezier(.4,2,.3,1)';
+  document.body.appendChild(clone);
+  const basketIcon = document.querySelector('a[href="/portfolio"]');
+  if (basketIcon) {
+    const basketRect = basketIcon.getBoundingClientRect();
+    setTimeout(() => {
+      clone.style.left = basketRect.left + 'px';
+      clone.style.top = basketRect.top + 'px';
+      clone.style.width = '30px';
+      clone.style.height = '30px';
+      clone.style.opacity = '0.5';
+    }, 10);
+    setTimeout(() => {
+      clone.remove();
+    }, 900);
+  } else {
+    setTimeout(() => clone.remove(), 900);
+  }
+}
+
+document.getElementById('add-to-basket').onclick = function() {
+  addToBasket(
+    'spider-man',
+    'Spider Man',
+    '/img/game4.jpg',
+    'Spider Man.'
+  );
+  animateBasketAdd();
+  if (window.animateBasketIcon) window.animateBasketIcon();
+  document.dispatchEvent(new Event('basket-updated'));
+  alert('Гра додана в корзину!');
+};
+</script>
+<script src="/static/js/download.js"></script>
+</body>
+</html>

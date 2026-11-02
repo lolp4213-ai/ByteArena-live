@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Адмін-панель — ByteArena</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <header class="admin-header">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <nav><a href="/profil">Профіль</a><a href="/logout">Вийти</a></nav>
+  </header>
+  <main class="admin-layout">
+    <section class="intro">
+      <p class="eyebrow">CONTROL CENTER</p>
+      <h1>Адмін-панель</h1>
+      <p>Керуйте каталогом, користувачами та замовленнями.</p>
+    </section>
+    <section class="stats" id="stats"></section>
+    <section class="panel">
+      <div class="panel-heading"><h2>Ігри</h2><button id="new-game" class="primary">Додати гру</button></div>
+      <form id="game-form" class="game-form hidden">
+        <input id="game-id" placeholder="ID: my-game" required>
+        <input id="game-title" placeholder="Назва" required>
+        <input id="game-genre" placeholder="Жанр" required>
+        <input id="game-platform" placeholder="Платформа" required>
+        <input id="game-image" placeholder="/img/game.jpg" required>
+        <input id="game-price" type="number" min="0" step="0.01" placeholder="Ціна">
+        <input id="game-rating" type="number" min="0" max="5" step="0.1" placeholder="Рейтинг">
+        <textarea id="game-description" placeholder="Опис"></textarea>
+        <label class="checkbox"><input id="game-free" type="checkbox"> Безкоштовна</label>
+        <button class="primary" type="submit">Зберегти</button>
+        <button id="cancel-game" type="button" class="secondary">Скасувати</button>
+        <p id="game-message" class="message"></p>
+      </form>
+      <div id="game-list" class="table-wrap"></div>
+    </section>
+    <section class="columns">
+      <section class="panel"><h2>Користувачі</h2><div id="user-list" class="table-wrap"></div></section>
+      <section class="panel"><h2>Замовлення</h2><div id="order-list" class="table-wrap"></div></section>
+    </section>
+  </main>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

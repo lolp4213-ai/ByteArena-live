@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ByteArena — каталог ігор та ігровий магазин">
+  <title>ByteArena — ігровий магазин</title>
+  <link rel="stylesheet" href="/css/ByteArena.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <video autoplay muted loop playsinline id="bg-video" aria-hidden="true">
+    <source src="/img/video11.mp4" type="video/mp4">
+  </video>
+  <div class="page-overlay" aria-hidden="true"></div>
+
+  <header class="site-header container">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <button class="menu-toggle" type="button" aria-label="Відкрити меню" aria-expanded="false">☰</button>
+    <nav class="site-nav">
+      <a class="active" href="/bytearena">Головна</a>
+      <a href="/biblioteka">Каталог</a>
+      <a href="/about">Про нас</a>
+      <a href="/portfolio">Кошик</a>
+      <a href="/news">Новини</a>
+      <a class="nav-button" href="/login">Увійти</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <div class="hero-content">
+        <p class="eyebrow">ІГРОВА ПЛАТФОРМА BYTEARENA</p>
+        <h1>Твоя наступна велика пригода починається тут</h1>
+        <p class="hero-text">Знаходь популярні ігри, відкривай нові світи та збирай власну бібліотеку в одному зручному місці.</p>
+        <div class="hero-actions">
+          <a class="button-primary" href="/biblioteka">Переглянути каталог</a>
+          <a class="button-ghost" href="/about">Дізнатися більше</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <span class="hero-card-label">ПОПУЛЯРНЕ ЗАРАЗ</span>
+        <img src="/img/game2.jpg" alt="Ghost of Tsushima">
+        <div>
+          <strong>Ghost of Tsushima</strong>
+          <span>★ 4.9 · Action</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="benefits container" aria-label="Переваги ByteArena">
+      <article><strong>8+</strong><span>ігор у каталозі</span></article>
+      <article><strong>4.8</strong><span>середній рейтинг</span></article>
+      <article><strong>24/7</strong><span>доступ до бібліотеки</span></article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 ByteArena</span>
+    <a href="/news">Останні новини</a>
+  </footer>
+
+  <script src="/static/js/auth.js"></script>
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.site-nav');
+    menuButton.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', open);
+    });
+  </script>
+</body>
+</html>

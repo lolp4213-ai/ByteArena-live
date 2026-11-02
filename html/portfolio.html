@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кошик — ByteArena</title>
+  <link rel="stylesheet" href="/css/basket.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <button class="menu-toggle" type="button" aria-label="Відкрити меню" aria-expanded="false">☰</button>
+    <nav class="site-nav">
+      <a href="/bytearena">Головна</a>
+      <a href="/biblioteka">Каталог</a>
+      <a class="active" href="/portfolio">Кошик <span id="basket-count">0</span></a>
+      <a href="/news">Новини</a>
+      <a href="/about">Про нас</a>
+      <a class="nav-button" href="/login">Увійти</a>
+    </nav>
+  </header>
+
+  <main class="basket-page">
+    <div class="page-heading">
+      <p class="eyebrow">YOUR COLLECTION</p>
+      <h1>Твій кошик</h1>
+      <p>Перевір обрані ігри перед оформленням замовлення.</p>
+    </div>
+    <section id="basket-list" aria-live="polite">
+      <div class="loading">Завантаження кошика...</div>
+    </section>
+    <p class="coupon-hint">Промокод для тестування: <strong>WELCOME10</strong></p>
+  </main>
+
+  <footer class="site-footer">© 2026 ByteArena</footer>
+
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/basket.js"></script>
+  <script>
+    async function updateBasketCount() {
+      const response = await fetch('/api/basket');
+      if (!response.ok) return;
+      const basket = await response.json();
+      document.getElementById('basket-count').textContent =
+        basket.reduce((sum, item) => sum + item.count, 0);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      updateBasketCount().catch(console.error);
+      document.querySelector('.menu-toggle').addEventListener('click', () => {
+        const nav = document.querySelector('.site-nav');
+        const open = nav.classList.toggle('open');
+        document.querySelector('.menu-toggle').setAttribute('aria-expanded', open);
+      });
+    });
+  </script>
+</body>
+</html>

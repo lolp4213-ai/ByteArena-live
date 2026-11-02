@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+logo.db
+users.json
+static/uploads/profiles/
+static/games/*.torrent
+*.log

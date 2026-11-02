@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghost of Tsushima - Epic Games</title>
+  <link rel="stylesheet" href="/css/game-detail.css" />
+  <link rel="stylesheet" href="/css/auth.css" />
+    <style>
+    /* # background gradient animation */
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(-25deg, #270000, #000000, #270000, #000000);
+      background-size: 200% 400%;
+      animation: gradient 10s ease infinite;
+    }
+    @keyframes gradient {
+      0% { background-position: 50% 0%; }
+      50% { background-position: 50% 50%; }
+      100% { background-position: 50% 50%; }
+    }
+  </style>
+</head>
+
+<body>
+      <video autoplay muted loop id="bg-video">
+    <source src="/img/video11.mp4" type="video/mp4">
+    Ваш браузер не підтримує відео тег.
+     </video>
+  <!-- # Header navigation -->
+  <header class="container">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <nav>
+      <ul>
+        <li><a href="/bytearena">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/portfolio">Basket</a></li>
+  <li><a href="/news">News</a></li>
+  <li class="button"><a href="/register">Register</a></li>
+  <li class="btn"><a href="/login">Login</a></li>
+      </ul>
+    </nav>
+    </header>
+
+  
+      <!-- Game Banner (Video as background) -->
+      <div class="game-banner">
+        <video class="video" autoplay muted loop playsinline>
+          <source src="/img/video2.mp4" type="video/mp4" />
+        </video>
+      </div>
+      </div>
+    <!-- Game Info Section -->
+    <div class="game-info">
+      <!-- Game Details -->
+      <div class="details">
+        <h2>Uncharted</h2>
+        <p>Uncharted is an action-adventure game series developed by Naughty Dog. It follows treasure hunter Nathan Drake as he embarks on various adventures around the world, uncovering historical mysteries and battling enemies. Known for its cinematic storytelling, engaging gameplay, and stunning visuals, Uncharted is a favorite among fans of the genre.</p>
+        <p class="price">1499 UAH</p>
+
+        <!-- Action Buttons -->
+        <div class="buttons">
+          <button onclick="downloadFile('game1.torrent')" class="btn-primary">Download</button>
+          <button id="add-to-basket" class="btn-primary" type="button">Add to basket</button>
+        </div>
+      </div>
+
+      <!-- Rating & Platforms -->
+      <div class="rating">
+        <span>Rating:</span>
+        <div class="stars">★★★★☆</div>
+      </div>
+
+      <div class="platforms">
+        <span>PlayStation</span>
+        <span>PC</span>
+      </div>
+    </div>
+
+    <!-- Screenshot Gallery -->
+    <div class="gallery">
+      <img src="https://assetsio.gnwcdn.com/watch-uncharted-4s-lengthy-e3-gameplay-demo-1435776394291.jpg?width=1600&height=900&fit=crop&quality=100&format=png&enable=upscale&auto=webp" alt="Screenshot 1">
+      <img src="https://blogs.uww.edu/gamelibrary/files/2016/10/Uncharted-4_-A-Thief%E2%80%99s-End%E2%84%A2_20160922205259.jpg" alt="Screenshot 2">
+      <img src="https://oyster.ignimgs.com/mediawiki/apis.ign.com/uncharted-legacy-of-thieves-collection/7/7a/Uncharted_4.jpg" alt="Screenshot 3">
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2025 Epic Games. All rights reserved.</p>
+  </div>
+
+</div>
+
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/basket.js"></script>
+<script>
+function animateBasketAdd() {
+  const btn = document.getElementById('add-to-basket');
+  const img = document.querySelector('.game-info .details img') || document.querySelector('.gallery img');
+  if (!img) return;
+  const clone = img.cloneNode(true);
+  const rect = img.getBoundingClientRect();
+  clone.style.position = 'fixed';
+  clone.style.left = rect.left + 'px';
+  clone.style.top = rect.top + 'px';
+  clone.style.width = img.width + 'px';
+  clone.style.height = img.height + 'px';
+  clone.style.zIndex = 9999;
+  clone.style.transition = 'all 0.8s cubic-bezier(.4,2,.3,1)';
+  document.body.appendChild(clone);
+  const basketIcon = document.querySelector('a[href="/portfolio"]');
+  if (basketIcon) {
+    const basketRect = basketIcon.getBoundingClientRect();
+    setTimeout(() => {
+      clone.style.left = basketRect.left + 'px';
+      clone.style.top = basketRect.top + 'px';
+      clone.style.width = '30px';
+      clone.style.height = '30px';
+      clone.style.opacity = '0.5';
+    }, 10);
+    setTimeout(() => {
+      clone.remove();
+    }, 900);
+  } else {
+    setTimeout(() => clone.remove(), 900);
+  }
+}
+
+document.getElementById('add-to-basket').onclick = function() {
+  addToBasket(
+    'uncharted',
+    'Uncharted',
+    '/img/game6.jpg',
+    'Uncharted is an action-adventure game series developed by Naughty Dog.'
+  );
+  animateBasketAdd();
+  if (window.animateBasketIcon) window.animateBasketIcon();
+  document.dispatchEvent(new Event('basket-updated'));
+  alert('Гра додана в корзину!');
+};
+</script>
+<script src="/static/js/download.js"></script>
+</body>
+</html>

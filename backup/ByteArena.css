@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+body{
+    background: #121212;
+    color: white;
+
+}
+
+a{
+    text-decoration: none;
+}
+
+img{
+    max-width: 100%;
+}
+
+.container {
+    width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    padding: 50px 0;
+}
+
+header .logo{
+    text-transform: uppercase;
+    font-size: 29px;
+    font-weight: 900;
+    float: left; 
+    letter-spacing: 1px;
+    padding: 0px 20px;
+
+   
+    
+    
+}
+
+
+header nav {
+    float: right;
+    width: 50%;
+    padding: 0;
+}
+
+header nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+}
+
+header nav ul li{
+    display: inline-block;
+}
+
+header nav ul li a{
+    color: white;
+}
+
+header nav ul li:not(.btn) a:hover{
+    border-bottom: 5px solid #fff;
+    transition: .3s;
+}
+
+header nav ul li.btn a{
+    background: #fff;
+    color: #121212;
+    padding: 10px 25px;
+    border-radius: 15px;
+    font-weight: 600;
+    transition: all 500ms ease;
+}
+
+header nav ul li.btn a:hover{
+    background: #808080;
+    color: #fff;
+}
+
+
+.content h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 100px;
+
+}
+
+.content p {
+    font-size: 18px;
+    color: #bbbbbb;   
+    text-align: center;
+
+}
+
+.content h2 {
+    font-size: 24px;
+    margin-top: 100px;
+    font-weight: 600;
+    text-align: left;
+    margin-left: 70px;
+
+}
+
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    background-color: white;
+    border-radius: 15px;
+    margin-top: 50px;
+}
+.hero {
+ background-image: url("img/photo_2025-11-05_18-12-02.jpg"); /* шлях до картинки */
+    background-size: cover; /* розтягує зображення на весь блок */
+    background-position: center; /* центрує зображення */
+    background-repeat: no-repeat; /* прибирає повтори */
+}
+.hero--info {
+    max-width: 600px;
+    margin-right: 50px;
+
+    background: rgba(0, 0, 0, 0.4); /* напівпрозорий фон */
+    backdrop-filter: blur(20px); /* розмиття заднього плану */
+    -webkit-backdrop-filter: blur(10px); /* для Safari */
+    
+    padding: 25px;
+    border-radius: 15px;
+}
+
+.hero--info h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+.hero--info p {
+    font-size: 16px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.batton {
+    padding: 12px 30px;
+    background-color: #fff;
+    color: black;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* додаємо анімацію масштабу */
+}
+
+/* Ефект збільшення */
+.batton:hover {
+    transform: scale(1.1); /* збільшуємо кнопку */
+    background-color: #808080;
+    color: #fff;
+}
+
+.footer {
+    text-align: center;
+    padding: 20px 0;
+    color: #fff;
+    border-top: 1px solid #2c5364;
+}

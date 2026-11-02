@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Дізнайтеся більше про ByteArena">
+  <title>Про ByteArena</title>
+  <link rel="stylesheet" href="/css/ByteArena.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <video autoplay muted loop playsinline id="bg-video" aria-hidden="true">
+    <source src="/img/video11.mp4" type="video/mp4">
+  </video>
+  <div class="page-overlay" aria-hidden="true"></div>
+  <header class="site-header container">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <button class="menu-toggle" type="button" aria-label="Відкрити меню" aria-expanded="false">☰</button>
+    <nav class="site-nav">
+      <a href="/bytearena">Головна</a>
+      <a href="/biblioteka">Каталог</a>
+      <a class="active" href="/about">Про нас</a>
+      <a href="/portfolio">Кошик</a>
+      <a href="/news">Новини</a>
+      <a class="nav-button" href="/login">Увійти</a>
+    </nav>
+  </header>
+  <main>
+    <section class="hero container">
+      <div class="hero-content">
+        <p class="eyebrow">ПРО BYTEARENA</p>
+        <h1>Місце для тих, хто любить грати</h1>
+        <p class="hero-text">ByteArena допомагає знаходити цікаві ігри, зберігати їх у власній бібліотеці та повертатися до улюблених пригод у будь-який момент.</p>
+        <div class="hero-actions">
+          <a class="button-primary" href="/biblioteka">Відкрити каталог</a>
+          <a class="button-ghost" href="/news">Наші новини</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <span class="hero-card-label">НАША МЕТА</span>
+        <img src="/img/game3.jpg" alt="God of War">
+        <div><strong>Грати. Відкривати. Ділитися.</strong><span>ByteArena</span></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><span>© 2026 ByteArena</span><a href="/news">Останні новини</a></footer>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.site-nav');
+    menuButton.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', open);
+    });
+  </script>
+</body>
+</html>
