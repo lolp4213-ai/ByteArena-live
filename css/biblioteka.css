@@ -90,4 +90,16 @@ input, select { width: 100%; padding: 13px 14px; border: 1px solid #343b48; bord
   .catalog { padding-top: 28px; }
   .catalog-hero { align-items: start; flex-direction: column; padding: 28px; }
   .catalog-toolbar { grid-template-columns: 1fr; }
+  .games-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .game-card { border-radius: 10px; }
+  .game-card > img { height: 110px; }
+  .game-card-content { padding: 8px; }
+  .game-card h3 { overflow: hidden; margin: 7px 0 4px; font-size: 12px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+  .game-card p { display: none; }
+  .game-card small { display: block; overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .game-badge { display: block; overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .game-card-actions { display: grid; grid-template-columns: 1fr; gap: 4px; margin-top: 8px; }
+  .game-card-actions > * { min-width: 0; width: 100%; overflow: hidden; padding: 7px 3px !important; font-size: 9px !important; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+  .game-card-actions .button-primary { order: -1; }
+  .compare-bar { font-size: 10px; }
 }
