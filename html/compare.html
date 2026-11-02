@@ -10,6 +10,7 @@
 <body>
   <header class="site-header">
     <a class="logo" href="/bytearena">BYTEARENA</a>
+    <button class="menu-toggle" type="button" aria-label="Відкрити меню" aria-expanded="false">☰</button>
     <nav class="site-nav">
       <a href="/bytearena">Головна</a>
       <a href="/biblioteka">Каталог</a>
@@ -28,5 +29,13 @@
   </main>
   <script src="/static/js/auth.js"></script>
   <script src="/static/js/compare.js"></script>
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.site-nav');
+    menuButton.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', open);
+    });
+  </script>
 </body>
 </html>

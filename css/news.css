@@ -14,4 +14,13 @@ h1 { margin: 12px 0 34px; font-size: clamp(32px, 5vw, 58px); }
 .news-card img { width: 100%; height: 190px; object-fit: cover; }
 .news-card div { padding: 22px; } .news-card small, .news-card p { color: var(--muted); }
 .news-card h2 { margin: 12px 0; font-size: 20px; } .news-card p { line-height: 1.6; font-size: 14px; }
-@media (max-width: 650px) { .site-header { align-items: flex-start; flex-direction: column; padding: 22px 0; } nav { flex-wrap: wrap; gap: 12px; } .news-page { padding-top: 35px; } }
+@media (max-width: 760px) {
+  .site-header { position: relative; flex-direction: row; padding: 12px 0; }
+  .menu-toggle { display: block; border: 0; background: transparent; color: white; font-size: 28px; }
+  .site-nav { display: none; position: absolute; top: 62px; left: 0; right: 0; z-index: 10; flex-direction: column; gap: 0; padding: 10px; border: 1px solid #2b323f; border-radius: 14px; background: #11151d; }
+  .site-nav.open { display: flex; }
+  .site-nav a { padding: 12px; }
+  .news-page { padding: 35px 0 60px; }
+  .news-grid { grid-template-columns: 1fr; gap: 16px; }
+  .news-card img { height: 180px; }
+}

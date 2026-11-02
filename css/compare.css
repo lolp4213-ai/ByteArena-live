@@ -24,4 +24,13 @@ dt { color:var(--muted); } dd { margin:0; text-align:right; }
 .empty-state,.error-state { margin-top:32px; padding:34px; border:1px solid var(--border); border-radius:16px; background:var(--surface); }
 .empty-state p { color:var(--muted); }
 .back-link { display:inline-block; margin-top:28px; color:#ff8c95; }
-@media (max-width:720px) { .site-nav { gap:10px; flex-wrap:wrap; justify-content:flex-end; } .compare-page { padding-top:30px; } }
+@media (max-width:720px) {
+  .site-header { position: relative; width: calc(100% - 28px); min-height: 68px; }
+  .menu-toggle { display: block; border: 0; background: transparent; color: white; font-size: 28px; }
+  .site-nav { display: none; position: absolute; top: 62px; left: 0; right: 0; z-index: 10; flex-direction: column; align-items: stretch; gap: 0; padding: 10px; border: 1px solid #343b48; border-radius: 14px; background: #11151d; }
+  .site-nav.open { display: flex; }
+  .site-nav a { min-height: 44px; padding: 12px; display: flex; align-items: center; }
+  .compare-page { width: calc(100% - 28px); padding-top: 30px; }
+  .comparison-grid { grid-template-columns: 1fr; gap: 16px; }
+  .compare-actions { text-align: left; }
+}

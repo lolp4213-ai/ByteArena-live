@@ -23,4 +23,13 @@ button { border:0; border-radius:9px; padding:10px 14px; color:#fff; font-weight
 .hidden { display:none; } .message { grid-column:1/-1; min-height:18px; margin:0; color:#ff8c95; font-size:13px; }
 .table-wrap { overflow:auto; } table { width:100%; border-collapse:collapse; font-size:13px; } th,td { padding:12px 8px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; } th { color:var(--muted); font-weight:600; }
 .delete { padding:6px 9px; background:#55232a; font-size:11px; } .columns { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-@media (max-width:760px) { .stats,.columns { grid-template-columns:1fr 1fr; } .game-form { grid-template-columns:1fr; } h1 { font-size:34px; } }
+@media (max-width:760px) {
+  .admin-header { padding: 14px; }
+  .admin-header nav { gap: 12px; }
+  .admin-layout { width: calc(100% - 28px); padding: 30px 0 55px; }
+  .stats, .columns { grid-template-columns: 1fr; }
+  .game-form { grid-template-columns: 1fr; }
+  h1 { font-size: 34px; }
+  .panel { padding: 16px; }
+  table { min-width: 620px; }
+}

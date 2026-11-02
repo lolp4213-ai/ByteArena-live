@@ -64,3 +64,41 @@ body[data-theme="light"] textarea {
 body[data-theme="light"] .site-footer {
   border-color: #d7dde7;
 }
+
+@media (max-width: 760px) {
+  .site-header {
+    width: calc(100% - 28px);
+    min-height: 68px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .site-nav {
+    z-index: 10;
+    max-height: calc(100vh - 82px);
+    overflow-y: auto;
+  }
+
+  .site-nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .button-primary,
+  .button-secondary,
+  .nav-button {
+    min-height: 44px;
+  }
+
+  .game-card-actions {
+    align-items: stretch;
+  }
+
+  .game-card-actions > * {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+  }
+}
