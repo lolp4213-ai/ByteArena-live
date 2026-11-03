@@ -15,8 +15,8 @@
     ].map(item => `<div class="stat"><strong>${esc(item[1])}</strong><span>${item[0]}</span></div>`).join('');
   }
   function renderGames(games) {
-    document.getElementById('game-list').innerHTML = `<table><thead><tr><th>Гра</th><th>Жанр</th><th>Ціна</th><th></th></tr></thead><tbody>${
-      games.map(game => `<tr><td>${esc(game.title)}</td><td>${esc(game.genre)}</td><td>${game.is_free ? 'Безкоштовно' : `${game.price} грн`}</td><td><button class="secondary edit-game" data-game="${esc(game.id)}">Редагувати</button> <button class="delete" data-game="${esc(game.id)}">Видалити</button></td></tr>`).join('')
+    document.getElementById('game-list').innerHTML = `<table><thead><tr><th>Гра</th><th>Жанр</th><th>Ціна</th><th>Статус</th><th></th></tr></thead><tbody>${
+      games.map(game => `<tr><td>${esc(game.title)}</td><td>${esc(game.genre)}</td><td>${game.is_free ? 'Безкоштовно' : `${game.price} грн`}</td><td>${game.sale_percent ? `-${game.sale_percent}%` : ''}${game.released_at ? ' · Нова' : ''}</td><td><button class="secondary edit-game" data-game="${esc(game.id)}">Редагувати</button> <button class="delete delete-game" data-game="${esc(game.id)}">Видалити</button></td></tr>`).join('')
     }</tbody></table>`;
     document.querySelectorAll('.edit-game').forEach(button => button.addEventListener('click', () => {
       const game = games.find(item => item.id === button.dataset.game);
@@ -26,11 +26,13 @@
         document.getElementById(`game-${field}`).value = game[field] || '';
       });
       document.getElementById('game-price').value = game.price;
+      document.getElementById('game-sale').value = game.sale_percent || 0;
+      document.getElementById('game-release').value = game.released_at || '';
       document.getElementById('game-rating').value = game.rating;
       document.getElementById('game-free').checked = Boolean(game.is_free);
       document.getElementById('game-form').dataset.editing = game.id;
     }));
-    document.querySelectorAll('[data-game]').forEach(button => button.addEventListener('click', async () => {
+    document.querySelectorAll('.delete-game').forEach(button => button.addEventListener('click', async () => {
       if (!confirm('Видалити цю гру?')) return;
       try { await json(`/api/admin/games/${encodeURIComponent(button.dataset.game)}`, {method:'DELETE', headers:{'X-CSRF-Token':csrf()}}); load(); }
       catch (error) { alert(error.message); }
@@ -72,7 +74,8 @@
     const payload = {
       id:value('game-id'), title:value('game-title'), genre:value('game-genre'), platform:value('game-platform'),
       image:value('game-image'), price:value('game-price') || 0, rating:value('game-rating') || 0,
-      description:value('game-description'), is_free:document.getElementById('game-free').checked
+      description:value('game-description'), is_free:document.getElementById('game-free').checked,
+      sale_percent:value('game-sale') || 0, released_at:value('game-release')
     };
     try {
       await json(editing ? `/api/admin/games/${encodeURIComponent(editing)}` : '/api/admin/games', {

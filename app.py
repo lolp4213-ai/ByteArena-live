@@ -652,6 +652,7 @@ def api_admin_games():
     genre = str(payload.get('genre', '')).strip()
     platform = str(payload.get('platform', '')).strip()
     image = str(payload.get('image', '')).strip()
+    released_at = str(payload.get('released_at', '')).strip()
     try:
         price = float(payload.get('price', 0))
         rating = float(payload.get('rating', 0))
@@ -665,13 +666,15 @@ def api_admin_games():
         return jsonify({'error': 'title, genre, platform and image are required'}), 400
     if price < 0 or rating < 0 or rating > 5 or not 0 <= sale_percent <= 95:
         return jsonify({'error': 'invalid price or rating'}), 400
+    if released_at and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', released_at):
+        return jsonify({'error': 'invalid release date'}), 400
     conn = get_db()
     try:
         conn.execute("""
             INSERT INTO games
-            (id, title, description, price, genre, platform, image, rating, is_free, sale_percent)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (game_id, title, description, price, genre, platform, image, rating, is_free, sale_percent))
+            (id, title, description, price, genre, platform, image, rating, is_free, sale_percent, released_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (game_id, title, description, price, genre, platform, image, rating, is_free, sale_percent, released_at))
         conn.commit()
     except sqlite3.IntegrityError:
         conn.close()
@@ -718,6 +721,10 @@ def api_admin_game(game_id):
             return jsonify({'error': 'invalid sale percent'}), 400
         if not 0 <= updates['sale_percent'] <= 95:
             return jsonify({'error': 'invalid sale percent'}), 400
+    if 'released_at' in updates:
+        updates['released_at'] = str(updates['released_at']).strip()
+        if updates['released_at'] and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', updates['released_at']):
+            return jsonify({'error': 'invalid release date'}), 400
     if 'is_free' in updates:
         updates['is_free'] = 1 if updates['is_free'] else 0
     assignments = ', '.join(f'{field}=?' for field in updates)
