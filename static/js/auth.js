@@ -80,6 +80,21 @@
   }
 
   document.addEventListener('DOMContentLoaded', function(){
+    var legacyHeader = document.querySelector('body > header.container');
+    var legacyNav = legacyHeader && legacyHeader.querySelector('nav:not(.site-nav)');
+    if (legacyHeader && legacyNav && !legacyHeader.querySelector('.mobile-game-toggle')) {
+      var toggle = document.createElement('button');
+      toggle.className = 'mobile-game-toggle';
+      toggle.type = 'button';
+      toggle.setAttribute('aria-label', 'Відкрити меню');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.textContent = '☰';
+      legacyHeader.insertBefore(toggle, legacyNav);
+      toggle.addEventListener('click', function() {
+        var open = legacyNav.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+    }
     fetch('/api/profile').then(function(response) {
       if (!response.ok) throw new Error('not authenticated');
       return response.json();
