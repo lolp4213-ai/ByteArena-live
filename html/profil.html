@@ -54,15 +54,36 @@
             <label>Колір аватара
               <input id="avatar-color" type="color" value="#e63946">
             </label>
-            <label>Тема
-              <select id="theme">
-                <option value="dark">Темна</option>
-                <option value="light">Світла</option>
-              </select>
-            </label>
           </div>
           <button class="button-primary" type="submit">Зберегти зміни</button>
           <p id="profile-message" class="form-message" role="status"></p>
+        </form>
+      </section>
+      <section class="panel settings-panel">
+        <div class="section-label">НАЛАШТУВАННЯ</div>
+        <h2>Вигляд і приватність</h2>
+        <p class="panel-description">Керуй тим, як ByteArena виглядає для тебе та що відображається іншим.</p>
+        <form id="settings-form" class="profile-form">
+          <label>Тема оформлення
+            <select id="theme">
+              <option value="dark">Темна</option>
+              <option value="light">Світла</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span><strong>Сповіщення про замовлення</strong><small>Показувати оновлення статусу та важливі повідомлення.</small></span>
+            <input id="email-notifications" type="checkbox">
+          </label>
+          <label class="setting-row">
+            <span><strong>Показувати активність</strong><small>Дозволити відображення твоїх відгуків та досягнень.</small></span>
+            <input id="show-activity" type="checkbox">
+          </label>
+          <label class="setting-row">
+            <span><strong>Компактний режим</strong><small>Зменшити відступи у списках профілю.</small></span>
+            <input id="compact-mode" type="checkbox">
+          </label>
+          <button class="button-primary" type="submit">Зберегти налаштування</button>
+          <p id="settings-message" class="form-message" role="status"></p>
         </form>
       </section>
       <section class="panel media-panel">
@@ -222,7 +243,11 @@
       document.getElementById('bio').value = settings.bio;
       document.getElementById('avatar-color').value = settings.avatar_color;
       document.getElementById('theme').value = settings.theme;
+      document.getElementById('email-notifications').checked = settings.email_notifications;
+      document.getElementById('show-activity').checked = settings.show_activity;
+      document.getElementById('compact-mode').checked = settings.compact_mode;
       document.body.dataset.theme = settings.theme;
+      document.body.classList.toggle('compact-mode', settings.compact_mode);
       applyProfileMedia(settings);
       document.getElementById('order-count').textContent = profile.orders.length;
       const list = document.getElementById('order-list');
@@ -308,7 +333,10 @@
           display_name: document.getElementById('display-name').value,
           bio: document.getElementById('bio').value,
           avatar_color: document.getElementById('avatar-color').value,
-          theme: document.getElementById('theme').value
+          theme: document.getElementById('theme').value,
+          email_notifications: document.getElementById('email-notifications').checked,
+          show_activity: document.getElementById('show-activity').checked,
+          compact_mode: document.getElementById('compact-mode').checked
         })
       });
       message.textContent = response.ok ? 'Зміни збережено.' : 'Не вдалося зберегти зміни.';
@@ -320,8 +348,14 @@
         document.getElementById('profile-avatar').textContent = settings.display_name.charAt(0).toUpperCase();
         document.getElementById('profile-avatar').style.background = settings.avatar_color;
         document.body.dataset.theme = settings.theme;
+        document.body.classList.toggle('compact-mode', settings.compact_mode);
         applyProfileMedia(settings);
       }
+    });
+
+    document.getElementById('settings-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      document.getElementById('profile-form').dispatchEvent(new Event('submit', {cancelable: true}));
     });
 
     document.getElementById('password-form').addEventListener('submit', async event => {

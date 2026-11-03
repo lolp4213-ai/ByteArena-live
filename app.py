@@ -877,6 +877,9 @@ def api_profile():
             'bio': profile.get('bio', ''),
             'avatar_color': profile.get('avatar_color', '#e63946'),
             'theme': profile.get('theme', 'dark'),
+            'email_notifications': profile.get('email_notifications', True),
+            'show_activity': profile.get('show_activity', True),
+            'compact_mode': profile.get('compact_mode', False),
             'avatar_url': avatar_url,
             'background_url': background_url,
             'background_type': profile.get('background_type')
@@ -894,6 +897,9 @@ def api_profile_update():
     bio = str(payload.get('bio', '')).strip()
     avatar_color = str(payload.get('avatar_color', '')).strip().lower()
     theme = str(payload.get('theme', 'dark')).strip().lower()
+    email_notifications = bool(payload.get('email_notifications', True))
+    show_activity = bool(payload.get('show_activity', True))
+    compact_mode = bool(payload.get('compact_mode', False))
     if not 1 <= len(display_name) <= 32:
         return jsonify({'error': 'display name must be 1-32 characters'}), 400
     if len(bio) > 160:
@@ -910,7 +916,10 @@ def api_profile_update():
         'display_name': display_name,
         'bio': bio,
         'avatar_color': avatar_color,
-        'theme': theme
+        'theme': theme,
+        'email_notifications': email_notifications,
+        'show_activity': show_activity,
+        'compact_mode': compact_mode
     })
     _save_users(users)
     return jsonify({'ok': True, 'profile': users[user]['profile']})
