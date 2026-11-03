@@ -11,7 +11,8 @@
   function renderStats(data) {
     document.getElementById('stats').innerHTML = [
       ['Ігор', data.games], ['Користувачів', data.users],
-      ['Замовлень', data.orders], ['Виручка', `${Number(data.revenue).toFixed(2)} грн`]
+      ['Замовлень', data.orders], ['Відгуків', data.reviews],
+      ['Виручка', `${Number(data.revenue).toFixed(2)} грн`]
     ].map(item => `<div class="stat"><strong>${esc(item[1])}</strong><span>${item[0]}</span></div>`).join('');
   }
   function renderGames(games) {
@@ -57,12 +58,29 @@
       } catch (error) { alert(error.message); }
     }));
   }
+  function renderReviews(reviews) {
+    document.getElementById('review-list').innerHTML = reviews.length
+      ? `<table><thead><tr><th>Автор</th><th>Гра</th><th>Оцінка</th><th>Відгук</th><th>Дата</th><th></th></tr></thead><tbody>${
+        reviews.map(review => `<tr><td>${esc(review.display_name)}</td><td>${esc(review.title || 'Гру видалено')}</td><td>${'★'.repeat(review.rating)}</td><td class="review-comment">${esc(review.comment || '—')}</td><td>${esc(review.created_at)}</td><td><button class="delete delete-review" data-review="${review.id}">Видалити</button></td></tr>`).join('')
+      }</tbody></table>`
+      : '<p class="empty">Відгуків ще немає.</p>';
+    document.querySelectorAll('.delete-review').forEach(button => button.addEventListener('click', async () => {
+      if (!confirm('Видалити цей відгук?')) return;
+      try {
+        await json(`/api/admin/reviews/${button.dataset.review}`, {
+          method:'DELETE', headers:{'X-CSRF-Token':csrf()}
+        });
+        load();
+      } catch (error) { alert(error.message); }
+    }));
+  }
   async function load() {
     try {
-      const [summary, games, users, orders] = await Promise.all([
-        json('/api/admin/summary'), json('/api/admin/games'), json('/api/admin/users'), json('/api/admin/orders')
+      const [summary, games, users, orders, reviews] = await Promise.all([
+        json('/api/admin/summary'), json('/api/admin/games'), json('/api/admin/users'),
+        json('/api/admin/orders'), json('/api/admin/reviews')
       ]);
-      renderStats(summary); renderGames(games); renderUsers(users); renderOrders(orders);
+      renderStats(summary); renderGames(games); renderUsers(users); renderOrders(orders); renderReviews(reviews);
     } catch (error) { document.body.innerHTML = `<main class="admin-layout"><h1>Помилка</h1><p>${esc(error.message)}</p></main>`; }
   }
   document.getElementById('new-game').addEventListener('click', () => document.getElementById('game-form').classList.remove('hidden'));

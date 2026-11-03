@@ -625,6 +625,7 @@ def api_admin_summary():
     conn = get_db()
     games = conn.execute('SELECT COUNT(*) AS count FROM games').fetchone()['count']
     orders = conn.execute('SELECT COUNT(*) AS count FROM orders').fetchone()['count']
+    reviews = conn.execute('SELECT COUNT(*) AS count FROM reviews').fetchone()['count']
     revenue = conn.execute('SELECT COALESCE(SUM(total), 0) AS total FROM orders').fetchone()['total']
     conn.close()
     users = _load_users()
@@ -632,6 +633,7 @@ def api_admin_summary():
         'games': games,
         'users': len(users),
         'orders': orders,
+        'reviews': reviews,
         'revenue': revenue
     })
 
@@ -761,6 +763,45 @@ def api_admin_orders():
     ).fetchall()
     conn.close()
     return jsonify([dict(row) for row in rows])
+
+@app.route('/api/admin/reviews')
+def api_admin_reviews():
+    if not is_admin():
+        return jsonify({'error': 'admin access required'}), 403
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT reviews.id, reviews.user, reviews.rating, reviews.comment, reviews.created_at,
+               games.title
+        FROM reviews
+        LEFT JOIN games ON games.id=reviews.game
+        ORDER BY reviews.id DESC
+    """).fetchall()
+    conn.close()
+    users = _load_users()
+    return jsonify([
+        {
+            **dict(row),
+            'display_name': (users.get(row['user'], {}).get('profile') or {}).get(
+                'display_name'
+            ) or row['user']
+        }
+        for row in rows
+    ])
+
+@app.route('/api/admin/reviews/<int:review_id>', methods=['DELETE'])
+def api_admin_review_delete(review_id):
+    if not is_admin():
+        return jsonify({'error': 'admin access required'}), 403
+    conn = get_db()
+    deleted = conn.execute('DELETE FROM reviews WHERE id=?', (review_id,)).rowcount
+    if deleted:
+        conn.execute('DELETE FROM review_likes WHERE review_id=?', (review_id,))
+        conn.execute('DELETE FROM review_comments WHERE review_id=?', (review_id,))
+    conn.commit()
+    conn.close()
+    if not deleted:
+        return jsonify({'error': 'review not found'}), 404
+    return jsonify({'ok': True})
 
 @app.route('/api/admin/orders/<int:order_id>', methods=['PATCH'])
 def api_admin_order_update(order_id):
