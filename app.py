@@ -1424,8 +1424,7 @@ def api_profile_update():
     if theme not in {'dark', 'light'}:
         return jsonify({'error': 'invalid theme'}), 400
     users = _load_users()
-    if user not in users:
-        return jsonify({'error': 'user not found'}), 404
+    users.setdefault(user, {})
     users[user].setdefault('profile', {})
     users[user]['profile'].update({
         'display_name': display_name,
@@ -1487,8 +1486,7 @@ def api_profile_media():
         return jsonify({'error': 'file is too large'}), 413
 
     users = _load_users()
-    if user not in users:
-        return jsonify({'error': 'user not found'}), 404
+    users.setdefault(user, {})
     user_dir = os.path.join(PROFILE_UPLOADS_DIR, secure_filename(user))
     os.makedirs(user_dir, exist_ok=True)
     filename = f'{upload_type}-{secrets.token_urlsafe(12)}.{extension}'

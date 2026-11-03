@@ -265,7 +265,9 @@
         message.textContent = 'Медіа оновлено.';
         message.className = 'form-message success';
       }).catch(error => {
-        message.textContent = error.message;
+        message.textContent = error.message === 'user not found'
+          ? 'Не вдалося знайти профіль. Увійди в акаунт ще раз.'
+          : error.message;
         message.className = 'form-message error';
       });
     }
