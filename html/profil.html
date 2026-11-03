@@ -152,6 +152,19 @@
         <h2>Досягнення</h2>
         <div id="achievement-list" class="order-list"><p class="muted">Завантаження...</p></div>
       </section>
+      <section class="panel social-panel" data-section="activity">
+        <div class="panel-title-row"><div><div class="section-label">COMMUNITY</div><h2>Соціальна активність</h2></div></div>
+        <form id="social-user-form" class="social-user-form">
+          <input id="social-username" placeholder="Ім'я користувача" maxlength="32" autocomplete="off">
+          <button class="button-primary" type="submit">Знайти гравця</button>
+        </form>
+        <p id="social-message" class="form-message" role="status"></p>
+        <div id="social-profile" class="social-profile" hidden></div>
+        <div class="social-columns">
+          <div><h3>Стрічка друзів</h3><div id="social-feed" class="order-list"><p class="muted">Завантаження...</p></div></div>
+          <div><h3>Друзі та запити</h3><div id="friend-list" class="order-list"><p class="muted">Завантаження...</p></div></div>
+        </div>
+      </section>
       <section class="panel quick-links" data-section="overview">
         <h2>Швидкі дії</h2>
         <a href="/biblioteka">Переглянути каталог <span>→</span></a>
@@ -257,10 +270,79 @@
       });
     }
 
+    const csrfToken = () => decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1]);
+    async function loadSocial() {
+      const [feedResponse, friendsResponse] = await Promise.all([
+        fetch('/api/social/feed'),
+        fetch('/api/social/friends')
+      ]);
+      const feed = await feedResponse.json();
+      const friends = await friendsResponse.json();
+      document.getElementById('social-feed').innerHTML = feed.length ? feed.map(item => `
+        <article class="order social-event"><div><strong>${item.display_name} відгукнувся про ${item.title}</strong>
+        <small>${'★'.repeat(item.rating)} · ${item.comment || 'Без коментаря'} · ${item.created_at}</small></div></article>
+      `).join('') : '<p class="muted">Підпишись на гравців, щоб бачити їхню активність.</p>';
+      document.getElementById('friend-list').innerHTML = friends.length ? friends.map(item => {
+        const other = item.sender === profileUsername ? item.recipient : item.sender;
+        const action = item.recipient === profileUsername && item.status === 'pending'
+          ? `<button class="button-secondary friend-action" data-id="${item.id}" data-status="accepted">Прийняти</button>`
+          : '';
+        return `<article class="order"><div><strong>@${other}</strong><small>${item.status === 'accepted' ? 'Друг' : item.status === 'pending' ? 'Очікує підтвердження' : 'Запит відхилено'}</small></div>${action}</article>`;
+      }).join('') : '<p class="muted">Друзів і запитів ще немає.</p>';
+      document.querySelectorAll('.friend-action').forEach(button => button.addEventListener('click', async () => {
+        await fetch('/api/social/friends', {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken()},
+          body: JSON.stringify({id: button.dataset.id, status: button.dataset.status})
+        });
+        loadSocial();
+      }));
+    }
+
+    let profileUsername = '';
+    document.getElementById('social-user-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const username = document.getElementById('social-username').value.trim();
+      const message = document.getElementById('social-message');
+      const response = await fetch('/api/social/profile/' + encodeURIComponent(username));
+      const result = await response.json();
+      if (!response.ok) {
+        message.textContent = result.error || 'Гравця не знайдено.';
+        message.className = 'form-message error';
+        return;
+      }
+      const card = document.getElementById('social-profile');
+      card.hidden = false;
+      card.innerHTML = `<div><strong>${result.display_name}</strong><small>@${result.username} · ${result.followers} підписників · ${result.following} підписок</small></div>
+        <div class="social-profile-actions">
+          <button class="button-secondary" id="toggle-follow">${result.is_following ? 'Відписатися' : 'Підписатися'}</button>
+          <button class="button-secondary" id="send-friend">Додати в друзі</button>
+        </div>`;
+      document.getElementById('toggle-follow').onclick = async () => {
+        await fetch('/api/social/follow', {
+          method: result.is_following ? 'DELETE' : 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken()},
+          body: JSON.stringify({username: result.username})
+        });
+        event.target.dispatchEvent(new Event('submit', {cancelable: true}));
+      };
+      document.getElementById('send-friend').onclick = async () => {
+        await fetch('/api/social/friends', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken()},
+          body: JSON.stringify({username: result.username})
+        });
+        message.textContent = 'Запит на дружбу надіслано.';
+        message.className = 'form-message success';
+      };
+    });
+
     fetch('/api/profile').then(response => {
       if (!response.ok) throw new Error('not authenticated');
       return response.json();
     }).then(profile => {
+      profileUsername = profile.username;
+      loadSocial().catch(() => {});
       const settings = profile.profile;
       document.getElementById('profile-name').textContent = settings.display_name;
       document.getElementById('profile-username').textContent = '@' + profile.username;

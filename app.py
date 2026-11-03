@@ -291,6 +291,24 @@ def init_db():
             UNIQUE(user, code)
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS follows (
+            follower TEXT NOT NULL,
+            following TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (follower, following)
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS friend_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender TEXT NOT NULL,
+            recipient TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(sender, recipient)
+        )
+    """)
     for column, definition in (
         ('status', "TEXT NOT NULL DEFAULT 'new'"),
         ('coupon', "TEXT NOT NULL DEFAULT ''"),
@@ -1040,6 +1058,137 @@ def api_achievements():
         }
         for row in rows
     ])
+
+def public_profile_data(username, viewer=None):
+    users = _load_users()
+    entry = users.get(username)
+    if not entry:
+        return None
+    profile = entry.get('profile') or {}
+    conn = get_db()
+    followers = conn.execute('SELECT COUNT(*) AS count FROM follows WHERE following=?', (username,)).fetchone()['count']
+    following = conn.execute('SELECT COUNT(*) AS count FROM follows WHERE follower=?', (username,)).fetchone()['count']
+    is_following = bool(viewer and conn.execute(
+        'SELECT 1 FROM follows WHERE follower=? AND following=?', (viewer, username)
+    ).fetchone())
+    is_friend = bool(viewer and conn.execute("""
+        SELECT 1 FROM friend_requests
+        WHERE ((sender=? AND recipient=?) OR (sender=? AND recipient=?))
+          AND status='accepted'
+    """, (viewer, username, username, viewer)).fetchone())
+    conn.close()
+    return {
+        'username': username,
+        'display_name': profile.get('display_name') or username,
+        'bio': profile.get('bio', ''),
+        'avatar_color': profile.get('avatar_color', '#e63946'),
+        'show_activity': profile.get('show_activity', True),
+        'followers': followers,
+        'following': following,
+        'is_following': is_following,
+        'is_friend': is_friend,
+    }
+
+@app.route('/api/social/profile/<username>')
+def api_social_profile(username):
+    profile = public_profile_data(username, current_user())
+    if not profile:
+        return jsonify({'error': 'user not found'}), 404
+    if not profile['show_activity'] and profile['username'] != current_user():
+        profile['bio'] = ''
+    return jsonify(profile)
+
+@app.route('/api/social/follow', methods=['POST', 'DELETE'])
+def api_social_follow():
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'not logged in'}), 401
+    target = str((request.get_json(silent=True) or {}).get('username', '')).strip()
+    if not target or target == user or target not in _load_users():
+        return jsonify({'error': 'invalid user'}), 400
+    conn = get_db()
+    if request.method == 'POST':
+        conn.execute('INSERT OR IGNORE INTO follows (follower, following) VALUES (?, ?)', (user, target))
+    else:
+        conn.execute('DELETE FROM follows WHERE follower=? AND following=?', (user, target))
+    conn.commit()
+    conn.close()
+    return jsonify({'ok': True})
+
+@app.route('/api/social/friends', methods=['GET', 'POST', 'PATCH'])
+def api_social_friends():
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'not logged in'}), 401
+    conn = get_db()
+    if request.method == 'POST':
+        target = str((request.get_json(silent=True) or {}).get('username', '')).strip()
+        if not target or target == user or target not in _load_users():
+            conn.close()
+            return jsonify({'error': 'invalid user'}), 400
+        conn.execute(
+            'INSERT OR IGNORE INTO friend_requests (sender, recipient) VALUES (?, ?)',
+            (user, target)
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({'ok': True})
+    if request.method == 'PATCH':
+        payload = request.get_json(silent=True) or {}
+        request_id = payload.get('id')
+        status = str(payload.get('status', '')).strip()
+        row = conn.execute(
+            'SELECT sender, recipient FROM friend_requests WHERE id=? AND recipient=?',
+            (request_id, user)
+        ).fetchone()
+        if not row or status not in {'accepted', 'declined'}:
+            conn.close()
+            return jsonify({'error': 'invalid friend request'}), 400
+        conn.execute('UPDATE friend_requests SET status=? WHERE id=?', (status, request_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'ok': True})
+    rows = conn.execute("""
+        SELECT id, sender, recipient, status, created_at
+        FROM friend_requests
+        WHERE sender=? OR recipient=?
+        ORDER BY id DESC
+    """, (user, user)).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows])
+
+@app.route('/api/social/feed')
+def api_social_feed():
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'not logged in'}), 401
+    conn = get_db()
+    followed = [row['following'] for row in conn.execute(
+        'SELECT following FROM follows WHERE follower=?', (user,)
+    ).fetchall()]
+    authors = followed + [user]
+    if not authors:
+        conn.close()
+        return jsonify([])
+    marks = ','.join('?' for _ in authors)
+    events = []
+    for row in conn.execute(f"""
+        SELECT reviews.user, reviews.rating, reviews.comment, reviews.created_at,
+               games.title, games.id
+        FROM reviews JOIN games ON games.id=reviews.game
+        WHERE reviews.user IN ({marks})
+        ORDER BY reviews.id DESC LIMIT 20
+    """, authors).fetchall():
+        profile = public_profile_data(row['user'], user)
+        if profile and profile['show_activity']:
+            events.append({
+                'type': 'review', 'username': row['user'],
+                'display_name': profile['display_name'], 'title': row['title'],
+                'game_id': row['id'], 'rating': row['rating'],
+                'comment': row['comment'], 'created_at': row['created_at']
+            })
+    conn.close()
+    return jsonify(events[:20])
 
 @app.route('/api/profile', methods=['GET'])
 def api_profile():
