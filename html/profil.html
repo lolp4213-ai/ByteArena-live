@@ -280,8 +280,31 @@
       const friends = await friendsResponse.json();
       document.getElementById('social-feed').innerHTML = feed.length ? feed.map(item => `
         <article class="order social-event"><div><strong>${item.display_name} відгукнувся про ${item.title}</strong>
-        <small>${'★'.repeat(item.rating)} · ${item.comment || 'Без коментаря'} · ${item.created_at}</small></div></article>
+        <small>${'★'.repeat(item.rating)} · ${item.comment || 'Без коментаря'} · ${item.created_at}</small>
+        <button class="text-button feed-like" data-review="${item.review_id}" type="button">♡ Подобається</button>
+        <button class="text-button feed-comment" data-review="${item.review_id}" type="button">Коментувати</button></div></article>
       `).join('') : '<p class="muted">Підпишись на гравців, щоб бачити їхню активність.</p>';
+      document.querySelectorAll('.feed-like').forEach(button => button.addEventListener('click', async () => {
+        const response = await fetch('/api/reviews/' + button.dataset.review + '/like', {
+          method: 'POST',
+          headers: {'X-CSRF-Token': csrfToken()}
+        });
+        if (response.ok) {
+          const result = await response.json();
+          button.textContent = `♥ Подобається (${result.likes})`;
+          button.disabled = true;
+        }
+      }));
+      document.querySelectorAll('.feed-comment').forEach(button => button.addEventListener('click', async () => {
+        const comment = window.prompt('Ваш коментар:');
+        if (!comment) return;
+        const response = await fetch('/api/reviews/' + button.dataset.review + '/comments', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken()},
+          body: JSON.stringify({comment})
+        });
+        if (response.ok) button.textContent = 'Коментар додано';
+      }));
       document.getElementById('friend-list').innerHTML = friends.length ? friends.map(item => {
         const other = item.sender === profileUsername ? item.recipient : item.sender;
         const action = item.recipient === profileUsername && item.status === 'pending'

@@ -266,6 +266,23 @@ def init_db():
         )
     """)
     cur.execute("""
+        CREATE TABLE IF NOT EXISTS review_likes (
+            user TEXT NOT NULL,
+            review_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user, review_id)
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS review_comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user TEXT NOT NULL,
+            review_id INTEGER NOT NULL,
+            comment TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS coupons (
             code TEXT PRIMARY KEY,
             percent INTEGER NOT NULL,
@@ -970,20 +987,28 @@ def api_game_reviews(game_id):
         return jsonify({'error': 'game not found'}), 404
     if request.method == 'GET':
         rows = conn.execute(
-            'SELECT user, rating, comment, created_at FROM reviews WHERE game=? ORDER BY id DESC',
+            """SELECT reviews.id, reviews.user, reviews.rating, reviews.comment, reviews.created_at,
+                      (SELECT COUNT(*) FROM review_likes WHERE review_id=reviews.id) AS likes
+               FROM reviews WHERE game=? ORDER BY reviews.id DESC""",
             (game_id,)
         ).fetchall()
-        conn.close()
+        viewer = current_user()
         users = _load_users()
-        return jsonify([
-            {
+        result = []
+        for row in rows:
+            item = {
                 **dict(row),
                 'display_name': (users.get(row['user'], {}).get('profile') or {}).get(
                     'display_name'
-                ) or row['user']
+                ) or row['user'],
+                'liked': bool(viewer and conn.execute(
+                    'SELECT 1 FROM review_likes WHERE user=? AND review_id=?',
+                    (viewer, row['id'])
+                ).fetchone())
             }
-            for row in rows
-        ])
+            result.append(item)
+        conn.close()
+        return jsonify(result)
     user = current_user()
     if not user:
         conn.close()
@@ -1005,6 +1030,67 @@ def api_game_reviews(game_id):
     conn.commit()
     conn.close()
     unlock_achievements(user)
+    return jsonify({'ok': True})
+
+@app.route('/api/reviews/<int:review_id>/like', methods=['POST', 'DELETE'])
+def api_review_like(review_id):
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'not logged in'}), 401
+    conn = get_db()
+    if not conn.execute('SELECT 1 FROM reviews WHERE id=?', (review_id,)).fetchone():
+        conn.close()
+        return jsonify({'error': 'review not found'}), 404
+    if request.method == 'POST':
+        conn.execute(
+            'INSERT OR IGNORE INTO review_likes (user, review_id) VALUES (?, ?)',
+            (user, review_id)
+        )
+    else:
+        conn.execute('DELETE FROM review_likes WHERE user=? AND review_id=?', (user, review_id))
+    likes = conn.execute(
+        'SELECT COUNT(*) AS count FROM review_likes WHERE review_id=?', (review_id,)
+    ).fetchone()['count']
+    conn.commit()
+    conn.close()
+    return jsonify({'ok': True, 'likes': likes, 'liked': request.method == 'POST'})
+
+@app.route('/api/reviews/<int:review_id>/comments', methods=['GET', 'POST'])
+def api_review_comments(review_id):
+    conn = get_db()
+    if not conn.execute('SELECT 1 FROM reviews WHERE id=?', (review_id,)).fetchone():
+        conn.close()
+        return jsonify({'error': 'review not found'}), 404
+    if request.method == 'GET':
+        rows = conn.execute(
+            'SELECT id, user, comment, created_at FROM review_comments WHERE review_id=? ORDER BY id',
+            (review_id,)
+        ).fetchall()
+        conn.close()
+        users = _load_users()
+        return jsonify([
+            {
+                **dict(row),
+                'display_name': (users.get(row['user'], {}).get('profile') or {}).get(
+                    'display_name'
+                ) or row['user']
+            }
+            for row in rows
+        ])
+    user = current_user()
+    if not user:
+        conn.close()
+        return jsonify({'error': 'not logged in'}), 401
+    comment = str((request.get_json(silent=True) or {}).get('comment', '')).strip()
+    if not 1 <= len(comment) <= 300:
+        conn.close()
+        return jsonify({'error': 'comment must be 1-300 characters'}), 400
+    conn.execute(
+        'INSERT INTO review_comments (user, review_id, comment) VALUES (?, ?, ?)',
+        (user, review_id, comment)
+    )
+    conn.commit()
+    conn.close()
     return jsonify({'ok': True})
 
 @app.route('/api/notifications')
@@ -1173,7 +1259,7 @@ def api_social_feed():
     marks = ','.join('?' for _ in authors)
     events = []
     for row in conn.execute(f"""
-        SELECT reviews.user, reviews.rating, reviews.comment, reviews.created_at,
+        SELECT reviews.id AS review_id, reviews.user, reviews.rating, reviews.comment, reviews.created_at,
                games.title, games.id
         FROM reviews JOIN games ON games.id=reviews.game
         WHERE reviews.user IN ({marks})
@@ -1183,6 +1269,7 @@ def api_social_feed():
         if profile and profile['show_activity']:
             events.append({
                 'type': 'review', 'username': row['user'],
+                'review_id': row['review_id'],
                 'display_name': profile['display_name'], 'title': row['title'],
                 'game_id': row['id'], 'rating': row['rating'],
                 'comment': row['comment'], 'created_at': row['created_at']
