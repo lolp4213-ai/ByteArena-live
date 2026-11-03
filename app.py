@@ -864,6 +864,9 @@ def api_profile():
         (user,)
     ).fetchall()
     extra_conn.close()
+    xp = len(order_data) * 120 + wishlist_count * 35 + len(achievements) * 80
+    level = 1 + xp // 500
+    level_xp = xp % 500
     avatar_url = profile.get('avatar_url')
     background_url = profile.get('background_url')
     return jsonify({
@@ -871,6 +874,9 @@ def api_profile():
         'is_admin': is_admin(),
         'wishlist_count': wishlist_count,
         'unread_notifications': unread_notifications,
+        'level': level,
+        'level_xp': level_xp,
+        'next_level_xp': 500,
         'achievements': [dict(row) for row in achievements],
         'profile': {
             'display_name': profile.get('display_name') or user,

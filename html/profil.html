@@ -24,14 +24,19 @@
 
   <main class="profile-layout">
     <aside class="profile-card">
+      <div class="profile-cover"><span>BYTEARENA MEMBER</span></div>
       <div class="avatar" id="profile-avatar" aria-hidden="true">B</div>
       <h1 id="profile-name">Профіль</h1>
       <p id="profile-username">@user</p>
       <p id="profile-bio" class="profile-bio"></p>
+      <div class="profile-level">
+        <div><strong>Рівень <span id="profile-level">1</span></strong><span id="profile-xp">0 / 500 XP</span></div>
+        <div class="level-track"><span id="profile-xp-bar"></span></div>
+      </div>
       <a class="button-secondary" href="/biblioteka">До каталогу</a>
       <div class="profile-stats">
         <div><strong id="order-count">0</strong><span>Замовлень</span></div>
-        <div><strong>8+</strong><span>Ігор у каталозі</span></div>
+        <div><strong id="wishlist-stat">0</strong><span>У бажаному</span></div>
       </div>
     </aside>
 
@@ -39,9 +44,19 @@
       <div class="section-heading">
         <p class="eyebrow">PERSONAL AREA</p>
         <h2>Твій профіль</h2>
-        <p>Тут зберігається історія твоїх замовлень.</p>
+        <p>Твоя ігрова активність, бібліотека та налаштування.</p>
       </div>
-      <section class="panel">
+      <nav class="profile-tabs" aria-label="Розділи профілю">
+        <button class="profile-tab active" data-tab="overview" type="button">Огляд</button>
+        <button class="profile-tab" data-tab="games" type="button">Ігри</button>
+        <button class="profile-tab" data-tab="activity" type="button">Активність</button>
+        <button class="profile-tab" data-tab="settings" type="button">Налаштування</button>
+      </nav>
+      <section class="panel profile-showcase" data-section="overview">
+        <div class="panel-title-row"><div><div class="section-label">ВІТРИНА ПРОФІЛЮ</div><h2>Моя ігрова полиця</h2></div><a class="text-button" href="/biblioteka">Знайти ігри →</a></div>
+        <div id="showcase-list" class="showcase-grid"><p class="muted">Завантаження вітрини...</p></div>
+      </section>
+      <section class="panel" data-section="settings">
         <h2>Основні дані</h2>
         <form id="profile-form" class="profile-form">
           <label>Ім'я для відображення
@@ -59,7 +74,7 @@
           <p id="profile-message" class="form-message" role="status"></p>
         </form>
       </section>
-      <section class="panel settings-panel">
+      <section class="panel settings-panel" data-section="settings">
         <div class="section-label">НАЛАШТУВАННЯ</div>
         <h2>Вигляд і приватність</h2>
         <p class="panel-description">Керуй тим, як ByteArena виглядає для тебе та що відображається іншим.</p>
@@ -86,7 +101,7 @@
           <p id="settings-message" class="form-message" role="status"></p>
         </form>
       </section>
-      <section class="panel media-panel">
+      <section class="panel media-panel" data-section="settings">
         <h2>Налаштування профілю</h2>
         <p class="panel-description">Зміни аватар і фонове оформлення профілю.</p>
         <div class="media-settings">
@@ -101,7 +116,7 @@
           <p id="media-message" class="form-message" role="status"></p>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel" data-section="settings">
         <h2>Безпека</h2>
         <p class="panel-description">Регулярно оновлюй пароль, щоб захистити акаунт.</p>
         <form id="password-form" class="profile-form">
@@ -118,25 +133,25 @@
           <p id="password-message" class="form-message" role="status"></p>
         </form>
       </section>
-      <section class="panel">
-        <h2>Історія замовлень</h2>
+      <section class="panel" data-section="games">
+        <div class="panel-title-row"><h2>Історія замовлень</h2><a class="text-button" href="/portfolio">Відкрити кошик →</a></div>
         <div id="order-list" class="order-list">
           <p class="muted">Завантаження...</p>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel" data-section="games">
         <h2>Список бажаного <span id="wishlist-count"></span></h2>
         <div id="wishlist-list" class="order-list"><p class="muted">Завантаження...</p></div>
       </section>
-      <section class="panel">
+      <section class="panel" data-section="activity">
         <div class="panel-title-row"><h2>Сповіщення</h2><button id="mark-notifications-read" class="text-button" type="button">Позначити прочитаними</button></div>
         <div id="notification-list" class="order-list"><p class="muted">Завантаження...</p></div>
       </section>
-      <section class="panel">
+      <section class="panel" data-section="activity">
         <h2>Досягнення</h2>
         <div id="achievement-list" class="order-list"><p class="muted">Завантаження...</p></div>
       </section>
-      <section class="panel quick-links">
+      <section class="panel quick-links" data-section="overview">
         <h2>Швидкі дії</h2>
         <a href="/biblioteka">Переглянути каталог <span>→</span></a>
         <a href="/portfolio">Відкрити кошик <span>→</span></a>
@@ -153,6 +168,18 @@
     menuButton.addEventListener('click', () => {
       const open = nav.classList.toggle('open');
       menuButton.setAttribute('aria-expanded', open);
+    });
+    document.querySelectorAll('.profile-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.profile-tab').forEach(item => item.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('[data-section]').forEach(section => {
+          section.hidden = section.dataset.section !== tab.dataset.tab;
+        });
+      });
+    });
+    document.querySelectorAll('[data-section]').forEach(section => {
+      section.hidden = section.dataset.section !== 'overview';
     });
 
     function applyProfileMedia(settings) {
@@ -250,6 +277,11 @@
       document.body.classList.toggle('compact-mode', settings.compact_mode);
       applyProfileMedia(settings);
       document.getElementById('order-count').textContent = profile.orders.length;
+      document.getElementById('wishlist-stat').textContent = profile.wishlist_count;
+      document.getElementById('profile-level').textContent = profile.level;
+      document.getElementById('profile-xp').textContent = `${profile.level_xp} / ${profile.next_level_xp} XP`;
+      document.getElementById('profile-xp-bar').style.width =
+        `${Math.min(100, profile.level_xp / profile.next_level_xp * 100)}%`;
       const list = document.getElementById('order-list');
       if (!profile.orders.length) {
         list.innerHTML = '<p class="muted">Замовлень ще немає. Переглянь каталог і додай першу гру.</p>';
@@ -275,6 +307,10 @@
       Promise.all([fetch('/api/wishlist'), fetch('/api/notifications'), fetch('/api/achievements')])
         .then(async responses => Promise.all(responses.map(response => response.json())))
         .then(([wishlist, notifications, achievements]) => {
+          const showcase = document.getElementById('showcase-list');
+          showcase.innerHTML = wishlist.length
+            ? wishlist.slice(0, 4).map(item => `<a class="showcase-game" href="/biblioteka?q=${encodeURIComponent(item.title)}"><img src="${item.image}" alt=""><span>${item.title}</span><small>${item.genre} · ★ ${item.rating}</small></a>`).join('')
+            : '<p class="muted showcase-empty">Додай ігри у бажане, щоб створити свою вітрину.</p>';
           document.getElementById('wishlist-list').innerHTML = wishlist.length
             ? wishlist.map(item => `<article class="order"><div><strong>${item.title}</strong><small>${item.genre} · ★ ${item.rating}</small></div><div class="order-actions"><button class="button-secondary add-wishlist-basket" type="button" data-game="${item.id}">До кошика</button><a class="button-secondary" href="/biblioteka">Каталог</a><button class="text-button remove-wishlist" type="button" data-game="${item.id}">Видалити</button></div></article>`).join('')
             : '<p class="muted">Список бажаного порожній.</p>';
@@ -288,27 +324,27 @@
                 },
                 body: JSON.stringify({game: button.dataset.game})
               });
-              document.querySelectorAll('.add-wishlist-basket').forEach(button => {
-                button.addEventListener('click', async () => {
-                  const response = await fetch('/api/basket/add', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])
-                    },
-                    body: JSON.stringify({game: button.dataset.game})
-                  });
-                  if (response.ok) {
-                    button.textContent = 'Додано';
-                    button.disabled = true;
-                  }
-                });
-              });
               if (!response.ok) return;
               button.closest('.order').remove();
               const count = document.querySelectorAll('#wishlist-list .order').length;
               document.getElementById('wishlist-count').textContent = `(${count})`;
               if (!count) document.getElementById('wishlist-list').innerHTML = '<p class="muted">Список бажаного порожній.</p>';
+            });
+          });
+          document.querySelectorAll('.add-wishlist-basket').forEach(button => {
+            button.addEventListener('click', async () => {
+              const response = await fetch('/api/basket/add', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])
+                },
+                body: JSON.stringify({game: button.dataset.game})
+              });
+              if (response.ok) {
+                button.textContent = 'Додано';
+                button.disabled = true;
+              }
             });
           });
           document.getElementById('notification-list').innerHTML = notifications.length
