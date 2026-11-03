@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const maxPrice = document.getElementById('game-max-price');
   const minRating = document.getElementById('game-min-rating');
   const sort = document.getElementById('game-sort');
+  const sale = document.getElementById('game-sale');
   const resetFilters = document.getElementById('reset-game-filters');
   const recommendations = document.getElementById('recommendations-list');
   const clearSearch = document.getElementById('clear-game-search');
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if (maxPrice) maxPrice.dataset.initial = initialParams.get('max_price') || '';
   if (minRating) minRating.dataset.initial = initialParams.get('min_rating') || '';
   if (sort) sort.dataset.initial = initialParams.get('sort') || 'popular';
+  if (sale) sale.dataset.initial = initialParams.get('sale') || 'false';
 
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
@@ -73,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function(){
       max_price: maxPrice ? maxPrice.value : '',
       min_rating: minRating ? minRating.value : '',
       sort: sort ? sort.value : 'popular'
+      ,sale: sale ? sale.value : 'false'
     });
     const response = await fetch('/api/games?' + params);
     if (!response.ok) throw new Error('Не вдалося завантажити каталог');
@@ -104,7 +107,11 @@ document.addEventListener('DOMContentLoaded', function(){
       card.innerHTML = `
         <img src="${escapeHtml(g.image)}" alt="${escapeHtml(g.title)}" loading="lazy">
         <div class="game-card-content">
-          <span class="game-badge">${g.is_free ? 'FREE' : escapeHtml(g.price) + ' грн'}</span>
+          <span class="game-badges">
+            ${g.is_new ? '<b class="new-badge">НОВИНКА</b>' : ''}
+            ${g.discount_percent ? `<b class="discount-badge">-${g.discount_percent}%</b>` : ''}
+            <span class="game-price">${g.is_free ? 'FREE' : (g.discount_percent ? `<del>${escapeHtml(g.original_price)} грн</del> ` : '') + escapeHtml(g.price) + ' грн'}</span>
+          </span>
           <h3>${escapeHtml(g.title)}</h3>
           <p>${escapeHtml(g.description)}</p>
           <small>${escapeHtml(g.genre)} · ${escapeHtml(g.platform)} · ★ ${escapeHtml(g.rating)}</small>
@@ -179,6 +186,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if (maxPrice) maxPrice.value = maxPrice.dataset.initial || '';
     if (minRating) minRating.value = minRating.dataset.initial || '';
     if (sort) sort.value = sort.dataset.initial || 'popular';
+    if (sale) sale.value = sale.dataset.initial || 'false';
   }).then(loadGames).catch(error => {
     container.innerHTML = `<p class="empty-state">${error.message}. Оновіть сторінку та спробуйте ще раз.</p>`;
     if (summary) summary.textContent = '';
@@ -190,7 +198,12 @@ document.addEventListener('DOMContentLoaded', function(){
       searchTimer = setTimeout(loadGames, 220);
     });
   }
-  [genre, platform, maxPrice, minRating, sort].filter(Boolean).forEach(control => control.addEventListener('change', loadGames));
+  [genre, platform, maxPrice, minRating, sort, sale].filter(Boolean).forEach(control => control.addEventListener('change', loadGames));
+  document.getElementById('show-sales')?.addEventListener('click', () => {
+    if (sale) sale.value = 'true';
+    if (sort) sort.value = 'discount';
+    loadGames();
+  });
   clearSearch?.addEventListener('click', () => {
     search.value = '';
     search.focus();
@@ -203,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if (maxPrice) maxPrice.value = '';
     if (minRating) minRating.value = '';
     if (sort) sort.value = 'popular';
+    if (sale) sale.value = 'false';
     loadGames();
   });
 });

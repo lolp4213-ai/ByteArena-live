@@ -92,7 +92,7 @@ async function loadBasket(){
       div.innerHTML = `
       <img src="${item.image}" alt="">
       <strong></strong>
-      <p>${item.price === 0 ? 'Безкоштовно' : item.price + ' грн'}</p>
+      <p>${item.price === 0 ? 'Безкоштовно' : (item.discount_percent ? `<del>${item.original_price} грн</del> ${item.price} грн (-${item.discount_percent}%)` : item.price + ' грн')}</p>
       <div class="quantity">
         <button type="button" data-action="decrease" aria-label="Зменшити кількість">−</button>
         <span>${item.count}</span>

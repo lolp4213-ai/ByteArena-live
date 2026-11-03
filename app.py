@@ -8,7 +8,7 @@ import sqlite3
 import hmac
 import re
 import secrets
-from datetime import timedelta
+from datetime import date, timedelta
 
 BASE_DIR = os.path.dirname(__file__)
 HTML_DIR = os.path.join(BASE_DIR, 'html')
@@ -183,6 +183,11 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def sale_price(price, sale_percent):
+    if not sale_percent:
+        return round(price, 2)
+    return round(price * (100 - sale_percent) / 100, 2)
+
 def init_db():
     conn = get_db()
     cur = conn.cursor()
@@ -196,7 +201,9 @@ def init_db():
             platform TEXT NOT NULL DEFAULT 'PC',
             image TEXT NOT NULL,
             rating REAL NOT NULL DEFAULT 0,
-            is_free INTEGER NOT NULL DEFAULT 0
+            is_free INTEGER NOT NULL DEFAULT 0,
+            sale_percent INTEGER NOT NULL DEFAULT 0,
+            released_at TEXT NOT NULL DEFAULT ''
         )
     """)
     cur.execute("""
@@ -294,6 +301,15 @@ def init_db():
         except sqlite3.OperationalError as error:
             if 'duplicate column name' not in str(error).lower():
                 raise
+    for column, definition in (
+        ('sale_percent', "INTEGER NOT NULL DEFAULT 0"),
+        ('released_at', "TEXT NOT NULL DEFAULT ''"),
+    ):
+        try:
+            cur.execute(f'ALTER TABLE games ADD COLUMN {column} {definition}')
+        except sqlite3.OperationalError as error:
+            if 'duplicate column name' not in str(error).lower():
+                raise
     cur.execute(
         'INSERT OR IGNORE INTO coupons (code, percent) VALUES (?, ?)',
         ('WELCOME10', 10)
@@ -317,6 +333,13 @@ def init_db():
         (id, title, description, price, genre, platform, image, rating, is_free)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, games)
+    cur.execute(
+        "UPDATE games SET sale_percent=20 WHERE id IN ('elden-ring', 'cyberpunk-2077') AND sale_percent=0"
+    )
+    cur.execute(
+        "UPDATE games SET released_at=? WHERE id IN ('baldurs-gate-3', 'hades') AND released_at=''",
+        (date.today().isoformat(),)
+    )
     conn.commit()
     conn.close()
 
@@ -416,13 +439,19 @@ def api_basket():
     cur = conn.cursor()
     cur.execute("""
         SELECT basket.id, basket.game, basket.count,
-               games.title, games.image, games.price
+               games.title, games.image, games.price, games.sale_percent
         FROM basket
         JOIN games ON games.id = basket.game
         WHERE basket.user=?
         ORDER BY basket.id DESC
     """, (user,))
-    items = [dict(r) for r in cur.fetchall()]
+    items = []
+    for row in cur.fetchall():
+        item = dict(row)
+        item['original_price'] = item['price']
+        item['price'] = sale_price(item['price'], item['sale_percent'])
+        item['discount_percent'] = item.pop('sale_percent')
+        items.append(item)
     conn.close()
     return jsonify(items)
 
@@ -500,6 +529,7 @@ def api_games():
     platform = request.args.get('platform', '').strip()
     max_price = request.args.get('max_price', '').strip()
     min_rating = request.args.get('min_rating', '').strip()
+    sale_only = request.args.get('sale', '').strip().lower() == 'true'
     sort = request.args.get('sort', 'popular')
     clauses = []
     params = []
@@ -519,7 +549,7 @@ def api_games():
             return jsonify({'error': 'invalid max price'}), 400
         if max_price_value < 0:
             return jsonify({'error': 'invalid max price'}), 400
-        clauses.append('price <= ?')
+        clauses.append('(price * (100 - sale_percent) / 100) <= ?')
         params.append(max_price_value)
     if min_rating:
         try:
@@ -530,16 +560,28 @@ def api_games():
             return jsonify({'error': 'invalid minimum rating'}), 400
         clauses.append('rating >= ?')
         params.append(min_rating_value)
+    if sale_only:
+        clauses.append('sale_percent > 0')
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ''
     order_by = {
         'price-low': 'price ASC',
         'price-high': 'price DESC',
         'rating': 'rating DESC',
         'newest': 'rowid DESC',
+        'discount': 'sale_percent DESC, rating DESC',
     }.get(sort, 'rating DESC')
     rows = conn.execute(f'SELECT * FROM games {where} ORDER BY {order_by}', params).fetchall()
     conn.close()
-    return jsonify([dict(row) for row in rows])
+    today = date.today().isoformat()
+    result = []
+    for row in rows:
+        game = dict(row)
+        game['original_price'] = game['price']
+        game['discount_percent'] = game['sale_percent']
+        game['price'] = sale_price(game['price'], game['sale_percent'])
+        game['is_new'] = bool(game['released_at'] and game['released_at'] >= today)
+        result.append(game)
+    return jsonify(result)
 
 @app.route('/api/admin/summary')
 def api_admin_summary():
@@ -578,6 +620,7 @@ def api_admin_games():
     try:
         price = float(payload.get('price', 0))
         rating = float(payload.get('rating', 0))
+        sale_percent = int(payload.get('sale_percent', 0))
     except (TypeError, ValueError):
         return jsonify({'error': 'price and rating must be numbers'}), 400
     is_free = 1 if payload.get('is_free') else 0
@@ -585,14 +628,15 @@ def api_admin_games():
         return jsonify({'error': 'invalid game id'}), 400
     if not 1 <= len(title) <= 120 or not genre or not platform or not image:
         return jsonify({'error': 'title, genre, platform and image are required'}), 400
-    if price < 0 or rating < 0 or rating > 5:
+    if price < 0 or rating < 0 or rating > 5 or not 0 <= sale_percent <= 95:
         return jsonify({'error': 'invalid price or rating'}), 400
     conn = get_db()
     try:
         conn.execute("""
-            INSERT INTO games (id, title, description, price, genre, platform, image, rating, is_free)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (game_id, title, description, price, genre, platform, image, rating, is_free))
+            INSERT INTO games
+            (id, title, description, price, genre, platform, image, rating, is_free, sale_percent)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (game_id, title, description, price, genre, platform, image, rating, is_free, sale_percent))
         conn.commit()
     except sqlite3.IntegrityError:
         conn.close()
@@ -615,7 +659,10 @@ def api_admin_game(game_id):
         return jsonify({'ok': True})
 
     payload = request.get_json(silent=True) or {}
-    fields = ('title', 'description', 'price', 'genre', 'platform', 'image', 'rating', 'is_free')
+    fields = (
+        'title', 'description', 'price', 'genre', 'platform', 'image',
+        'rating', 'is_free', 'sale_percent', 'released_at'
+    )
     updates = {field: payload[field] for field in fields if field in payload}
     if not updates:
         return jsonify({'error': 'no fields to update'}), 400
@@ -629,6 +676,13 @@ def api_admin_game(game_id):
         return jsonify({'error': 'invalid rating'}), 400
     if 'price' in updates and updates['price'] < 0:
         return jsonify({'error': 'invalid price'}), 400
+    if 'sale_percent' in updates:
+        try:
+            updates['sale_percent'] = int(updates['sale_percent'])
+        except (TypeError, ValueError):
+            return jsonify({'error': 'invalid sale percent'}), 400
+        if not 0 <= updates['sale_percent'] <= 95:
+            return jsonify({'error': 'invalid sale percent'}), 400
     if 'is_free' in updates:
         updates['is_free'] = 1 if updates['is_free'] else 0
     assignments = ', '.join(f'{field}=?' for field in updates)
@@ -691,6 +745,23 @@ def api_game_genres():
     conn.close()
     return jsonify(genres)
 
+@app.route('/api/promotions')
+def api_promotions():
+    conn = get_db()
+    rows = conn.execute(
+        'SELECT * FROM games WHERE sale_percent > 0 ORDER BY sale_percent DESC, rating DESC LIMIT 6'
+    ).fetchall()
+    conn.close()
+    return jsonify([
+        {
+            **dict(row),
+            'original_price': row['price'],
+            'price': sale_price(row['price'], row['sale_percent']),
+            'discount_percent': row['sale_percent'],
+        }
+        for row in rows
+    ])
+
 @app.route('/api/recommendations')
 def api_recommendations():
     user = current_user()
@@ -735,7 +806,7 @@ def api_basket_checkout():
         return jsonify({'error': 'not logged in'}), 401
     conn = get_db()
     items = conn.execute("""
-        SELECT basket.game, basket.count, games.price
+        SELECT basket.game, basket.count, games.price, games.sale_percent
         FROM basket JOIN games ON games.id = basket.game
         WHERE basket.user = ?
     """, (user,)).fetchall()
@@ -744,7 +815,10 @@ def api_basket_checkout():
         return jsonify({'error': 'basket is empty'}), 400
     payload = request.get_json(silent=True) or {}
     coupon_code = str(payload.get('coupon', '')).strip().upper()
-    subtotal = sum(row['count'] * row['price'] for row in items)
+    subtotal = sum(
+        row['count'] * sale_price(row['price'], row['sale_percent'])
+        for row in items
+    )
     discount = 0
     if coupon_code:
         coupon = conn.execute(
@@ -763,7 +837,12 @@ def api_basket_checkout():
     for row in items:
         conn.execute(
             'INSERT INTO order_items (order_id, game, count, price) VALUES (?, ?, ?, ?)',
-            (cursor.lastrowid, row['game'], row['count'], row['price'])
+            (
+                cursor.lastrowid,
+                row['game'],
+                row['count'],
+                sale_price(row['price'], row['sale_percent'])
+            )
         )
         conn.execute(
             """INSERT INTO game_library (user, game)

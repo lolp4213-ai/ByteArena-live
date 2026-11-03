@@ -72,14 +72,29 @@
       <label>Сортування
         <select id="game-sort">
           <option value="popular">Популярні</option>
+          <option value="discount">Найбільша знижка</option>
           <option value="rating">За рейтингом</option>
           <option value="price-low">Від дешевих</option>
           <option value="price-high">Від дорогих</option>
         </select>
       </label>
+      <label class="sale-filter"><span>Акції</span>
+        <select id="game-sale">
+          <option value="false">Усі ігри</option>
+          <option value="true">Тільки зі знижкою</option>
+        </select>
+      </label>
       <button id="reset-game-filters" class="reset-filters" type="button">Скинути фільтри</button>
     </section>
     <p id="games-summary" class="games-summary" aria-live="polite"></p>
+    <section class="sale-banner" aria-label="Розпродаж">
+      <div>
+        <p class="eyebrow">LIMITED TIME SALE</p>
+        <h2>Гарячі пропозиції до -20%</h2>
+        <p>Забирай популярні ігри дешевше та поповнюй свою бібліотеку.</p>
+      </div>
+      <button id="show-sales" class="button-primary" type="button">Показати акції</button>
+    </section>
     <section class="recommendations panel" aria-labelledby="recommendations-title">
       <div class="recommendations-heading">
         <div><p class="eyebrow">PERSONAL PICKS</p><h2 id="recommendations-title">Тобі може сподобатися</h2></div>
