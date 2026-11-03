@@ -1,0 +1,10 @@
+.public-profile-layout { width: min(760px, calc(100% - 40px)); margin: 0 auto; padding: 60px 0 90px; }
+.public-profile-card { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px; }
+.public-profile-card h1 { margin: 0 0 6px; font-size: 30px; }
+.public-profile-card p { margin: 0; }
+.public-profile-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+.public-profile-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 760px) {
+  .public-profile-layout { width: calc(100% - 28px); padding-top: 30px; }
+  .public-profile-card { align-items: stretch; flex-direction: column; padding: 20px; }
+}

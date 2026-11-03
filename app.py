@@ -150,6 +150,12 @@ def admin():
 def profile_alias():
     return redirect(url_for('profil'))
 
+@app.route('/user/<username>')
+def public_user_profile(username):
+    if not public_profile_data(username, current_user()):
+        abort(404)
+    return send_from_directory(HTML_DIR, 'public-profile.html')
+
 @app.route('/library')
 def library_alias():
     return redirect(url_for('my_library'))
@@ -1293,14 +1299,18 @@ def api_social_friends():
 
 @app.route('/api/social/feed')
 def api_social_feed():
-    user = current_user()
-    if not user:
+    viewer = current_user()
+    target = request.args.get('user', '').strip()
+    if not viewer and not target:
         return jsonify({'error': 'not logged in'}), 401
     conn = get_db()
-    followed = [row['following'] for row in conn.execute(
-        'SELECT following FROM follows WHERE follower=?', (user,)
-    ).fetchall()]
-    authors = followed + [user]
+    if target:
+        authors = [target]
+    else:
+        followed = [row['following'] for row in conn.execute(
+            'SELECT following FROM follows WHERE follower=?', (viewer,)
+        ).fetchall()]
+        authors = followed + [viewer]
     if not authors:
         conn.close()
         return jsonify([])
@@ -1313,7 +1323,7 @@ def api_social_feed():
         WHERE reviews.user IN ({marks})
         ORDER BY reviews.id DESC LIMIT 20
     """, authors).fetchall():
-        profile = public_profile_data(row['user'], user)
+        profile = public_profile_data(row['user'], viewer)
         if profile and profile['show_activity']:
             events.append({
                 'type': 'review', 'username': row['user'],
