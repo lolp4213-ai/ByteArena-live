@@ -4,6 +4,7 @@
       document.querySelector('nav a[href="/login"]');
     var modernNav = document.querySelector('.site-nav') ||
       document.querySelector('nav');
+    var navList = modernNav && modernNav.querySelector('ul');
     if(modernLogin && modernNav){
       modernLogin.textContent = '';
       modernLogin.classList.add('profile-button');
@@ -31,14 +32,26 @@
         logoutLink.className = 'nav-logout';
         logoutLink.href = '/logout';
         logoutLink.textContent = 'Вийти';
-        modernNav.appendChild(logoutLink);
+        if (navList) {
+          var logoutItem = document.createElement('li');
+          logoutItem.appendChild(logoutLink);
+          navList.appendChild(logoutItem);
+        } else {
+          modernNav.appendChild(logoutLink);
+        }
       }
       if (isAdmin && !modernNav.querySelector('.admin-link')) {
         var adminLink = document.createElement('a');
         adminLink.className = 'admin-link';
         adminLink.href = '/admin';
         adminLink.textContent = 'Адмін';
-        modernNav.appendChild(adminLink);
+        if (navList) {
+          var adminItem = document.createElement('li');
+          adminItem.appendChild(adminLink);
+          navList.appendChild(adminItem);
+        } else {
+          modernNav.appendChild(adminLink);
+        }
       }
     }
     var navRegister = document.getElementById('nav-register');
