@@ -3,9 +3,28 @@ document.addEventListener('DOMContentLoaded', function(){
   if(!container) return;
   const search = document.getElementById('game-search');
   const genre = document.getElementById('game-genre');
+  const platform = document.getElementById('game-platform');
+  const maxPrice = document.getElementById('game-max-price');
+  const minRating = document.getElementById('game-min-rating');
   const sort = document.getElementById('game-sort');
+  const resetFilters = document.getElementById('reset-game-filters');
+  const clearSearch = document.getElementById('clear-game-search');
+  const summary = document.getElementById('games-summary');
   let wishlist = new Set();
   let compare = JSON.parse(localStorage.getItem('bytearena-compare') || '[]');
+  let searchTimer;
+
+  const initialParams = new URLSearchParams(window.location.search);
+  if (search) search.value = initialParams.get('q') || '';
+  if (genre) genre.dataset.initial = initialParams.get('genre') || 'all';
+  if (platform) platform.dataset.initial = initialParams.get('platform') || 'all';
+  if (maxPrice) maxPrice.dataset.initial = initialParams.get('max_price') || '';
+  if (minRating) minRating.dataset.initial = initialParams.get('min_rating') || '';
+  if (sort) sort.dataset.initial = initialParams.get('sort') || 'popular';
+
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  }[character]));
 
   fetch('/api/wishlist').then(response => response.ok ? response.json() : []).then(items => {
     wishlist = new Set(items.map(item => item.id));
@@ -32,15 +51,25 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   async function loadGames(){
+    container.classList.add('is-loading');
     const params = new URLSearchParams({
       q: search ? search.value : '',
       genre: genre ? genre.value : 'all',
+      platform: platform ? platform.value : 'all',
+      max_price: maxPrice ? maxPrice.value : '',
+      min_rating: minRating ? minRating.value : '',
       sort: sort ? sort.value : 'popular'
     });
     const response = await fetch('/api/games?' + params);
-    if (!response.ok) throw new Error('Failed to load games');
+    if (!response.ok) throw new Error('Не вдалося завантажити каталог');
     const games = await response.json();
-    container.innerHTML = games.length ? '' : '<p>Ігор за цим запитом не знайдено.</p>';
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(null, '', nextUrl);
+    container.innerHTML = games.length ? '' : '<p class="empty-state">Ігор за цим запитом не знайдено. Спробуйте іншу назву або жанр.</p>';
+    if (summary) {
+      summary.textContent = `${games.length} ${games.length === 1 ? 'гра' : games.length < 5 ? 'ігри' : 'ігор'} знайдено`;
+    }
+    if (clearSearch && search) clearSearch.hidden = !search.value;
     games.forEach(g => {
       const card = document.createElement('article');
       card.className = 'game-card';
@@ -59,12 +88,12 @@ document.addEventListener('DOMContentLoaded', function(){
         'hades': 'biblioteka'
       };
       card.innerHTML = `
-        <img src="${g.image}" alt="${g.title}">
+        <img src="${escapeHtml(g.image)}" alt="${escapeHtml(g.title)}" loading="lazy">
         <div class="game-card-content">
-          <span class="game-badge">${g.is_free ? 'FREE' : g.price + ' грн'}</span>
-          <h3>${g.title}</h3>
-          <p>${g.description}</p>
-          <small>${g.genre} · ${g.platform} · ★ ${g.rating}</small>
+          <span class="game-badge">${g.is_free ? 'FREE' : escapeHtml(g.price) + ' грн'}</span>
+          <h3>${escapeHtml(g.title)}</h3>
+          <p>${escapeHtml(g.description)}</p>
+          <small>${escapeHtml(g.genre)} · ${escapeHtml(g.platform)} · ★ ${escapeHtml(g.rating)}</small>
           <div class="game-card-actions">
             <a href="/${routes[g.id] || 'biblioteka'}" class="button-secondary">Деталі</a>
             <button class="button-primary" data-game="${g.id}">До кошика</button>
@@ -123,14 +152,43 @@ document.addEventListener('DOMContentLoaded', function(){
       });
       container.appendChild(card);
     });
+    container.classList.remove('is-loading');
     renderCompare();
   }
 
   fetch('/api/games/genres').then(r => r.json()).then(genres => {
-    if (genre) genres.forEach(item => genre.insertAdjacentHTML('beforeend', `<option value="${item}">${item}</option>`));
+    if (genre) {
+      genres.forEach(item => genre.insertAdjacentHTML('beforeend', `<option value="${item}">${item}</option>`));
+      genre.value = genre.dataset.initial || 'all';
+    }
+    if (platform) platform.value = platform.dataset.initial || 'all';
+    if (maxPrice) maxPrice.value = maxPrice.dataset.initial || '';
+    if (minRating) minRating.value = minRating.dataset.initial || '';
+    if (sort) sort.value = sort.dataset.initial || 'popular';
   }).then(loadGames).catch(error => {
-    container.innerHTML = '<p>Не вдалося завантажити каталог.</p>';
+    container.innerHTML = `<p class="empty-state">${error.message}. Оновіть сторінку та спробуйте ще раз.</p>`;
+    if (summary) summary.textContent = '';
     console.error(error);
   });
-  [search, genre, sort].filter(Boolean).forEach(control => control.addEventListener('input', loadGames));
+  if (search) {
+    search.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadGames, 220);
+    });
+  }
+  [genre, platform, maxPrice, minRating, sort].filter(Boolean).forEach(control => control.addEventListener('change', loadGames));
+  clearSearch?.addEventListener('click', () => {
+    search.value = '';
+    search.focus();
+    loadGames();
+  });
+  resetFilters?.addEventListener('click', () => {
+    if (search) search.value = '';
+    if (genre) genre.value = 'all';
+    if (platform) platform.value = 'all';
+    if (maxPrice) maxPrice.value = '';
+    if (minRating) minRating.value = '';
+    if (sort) sort.value = 'popular';
+    loadGames();
+  });
 });

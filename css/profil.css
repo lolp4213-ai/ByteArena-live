@@ -34,6 +34,9 @@ a { color: inherit; text-decoration: none; }
 .section-heading p:last-child, .muted { color: var(--muted); }
 .panel { padding: 24px; margin-bottom: 20px; }
 .panel h2 { margin: 0 0 20px; font-size: 20px; }
+.panel-title-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.text-button { padding: 6px 0; border: 0; background: transparent; color: #ff8c95; cursor: pointer; font: inherit; font-size: 12px; }
+.text-button:hover { color: var(--text); }
 .panel-description { margin: -10px 0 20px; color: var(--muted); font-size: 13px; }
 .profile-form { display: grid; gap: 16px; }
 .profile-form label { display: grid; gap: 7px; color: var(--muted); font-size: 13px; }
@@ -54,6 +57,9 @@ a { color: inherit; text-decoration: none; }
 .order span { color: var(--muted); font-size: 12px; }
 .order small { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .order b { color: #ff8c95; white-space: nowrap; }
+.order.unread { border-left: 3px solid var(--accent); }
+.order-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.order-actions .button-secondary { padding: 8px 11px; }
 .quick-links { display: grid; gap: 0; }
 .quick-links h2 { margin-bottom: 8px; }
 .quick-links a { display: flex; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--line); color: var(--muted); }
@@ -76,4 +82,5 @@ body[data-theme="light"] .quick-links a { background: #f7f9fc; }
   .profile-card { max-width: none; }
   .section-heading h2 { font-size: 34px; }
   .form-row { grid-template-columns: 1fr; }
+  .panel-title-row { align-items: flex-start; flex-direction: column; gap: 4px; }
 }

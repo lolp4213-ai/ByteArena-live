@@ -46,6 +46,10 @@ def auth_cookie_serializer():
 def index():
     return redirect('/bytearena')
 
+@app.route('/health')
+def health():
+    return jsonify({'status': 'ok'})
+
 
 @app.route('/bytearena')
 def bytearena():
@@ -474,15 +478,39 @@ def api_games():
     conn = get_db()
     query = request.args.get('q', '').strip()
     genre = request.args.get('genre', '').strip()
+    platform = request.args.get('platform', '').strip()
+    max_price = request.args.get('max_price', '').strip()
+    min_rating = request.args.get('min_rating', '').strip()
     sort = request.args.get('sort', 'popular')
     clauses = []
     params = []
     if query:
-        clauses.append('(title LIKE ? OR description LIKE ?)')
-        params.extend([f'%{query}%', f'%{query}%'])
+        clauses.append('(title LIKE ? OR description LIKE ? OR genre LIKE ? OR platform LIKE ?)')
+        params.extend([f'%{query}%'] * 4)
     if genre and genre != 'all':
         clauses.append('genre = ?')
         params.append(genre)
+    if platform and platform != 'all':
+        clauses.append('platform LIKE ?')
+        params.append(f'%{platform}%')
+    if max_price:
+        try:
+            max_price_value = float(max_price)
+        except ValueError:
+            return jsonify({'error': 'invalid max price'}), 400
+        if max_price_value < 0:
+            return jsonify({'error': 'invalid max price'}), 400
+        clauses.append('price <= ?')
+        params.append(max_price_value)
+    if min_rating:
+        try:
+            min_rating_value = float(min_rating)
+        except ValueError:
+            return jsonify({'error': 'invalid minimum rating'}), 400
+        if not 0 <= min_rating_value <= 5:
+            return jsonify({'error': 'invalid minimum rating'}), 400
+        clauses.append('rating >= ?')
+        params.append(min_rating_value)
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ''
     order_by = {
         'price-low': 'price ASC',
@@ -886,6 +914,27 @@ def api_profile_update():
     })
     _save_users(users)
     return jsonify({'ok': True, 'profile': users[user]['profile']})
+
+@app.route('/api/profile/password', methods=['POST'])
+def api_profile_password():
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'not logged in'}), 401
+    payload = request.get_json(silent=True) or {}
+    current_password = str(payload.get('current_password', ''))
+    new_password = str(payload.get('new_password', ''))
+    if not current_password or not new_password:
+        return jsonify({'error': 'Вкажіть поточний і новий пароль.'}), 400
+    if len(new_password) < 8:
+        return jsonify({'error': 'Новий пароль має містити щонайменше 8 символів.'}), 400
+    users = _load_users()
+    entry = users.get(user)
+    stored_password = entry.get('password', '') if entry else ''
+    if not stored_password or not check_password_hash(stored_password, current_password):
+        return jsonify({'error': 'Поточний пароль неправильний.'}), 400
+    users[user]['password'] = generate_password_hash(new_password)
+    _save_users(users)
+    return jsonify({'ok': True})
 
 
 @app.route('/api/profile/media', methods=['POST'])

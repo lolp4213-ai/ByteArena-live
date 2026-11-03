@@ -81,6 +81,23 @@
         </div>
       </section>
       <section class="panel">
+        <h2>Безпека</h2>
+        <p class="panel-description">Регулярно оновлюй пароль, щоб захистити акаунт.</p>
+        <form id="password-form" class="profile-form">
+          <label>Поточний пароль
+            <input id="current-password" type="password" autocomplete="current-password" required>
+          </label>
+          <label>Новий пароль
+            <input id="new-password" type="password" minlength="8" autocomplete="new-password" required>
+          </label>
+          <label>Повтори новий пароль
+            <input id="confirm-password" type="password" minlength="8" autocomplete="new-password" required>
+          </label>
+          <button class="button-primary" type="submit">Змінити пароль</button>
+          <p id="password-message" class="form-message" role="status"></p>
+        </form>
+      </section>
+      <section class="panel">
         <h2>Історія замовлень</h2>
         <div id="order-list" class="order-list">
           <p class="muted">Завантаження...</p>
@@ -91,7 +108,7 @@
         <div id="wishlist-list" class="order-list"><p class="muted">Завантаження...</p></div>
       </section>
       <section class="panel">
-        <h2>Сповіщення</h2>
+        <div class="panel-title-row"><h2>Сповіщення</h2><button id="mark-notifications-read" class="text-button" type="button">Позначити прочитаними</button></div>
         <div id="notification-list" class="order-list"><p class="muted">Завантаження...</p></div>
       </section>
       <section class="panel">
@@ -211,27 +228,66 @@
       const list = document.getElementById('order-list');
       if (!profile.orders.length) {
         list.innerHTML = '<p class="muted">Замовлень ще немає. Переглянь каталог і додай першу гру.</p>';
-        return;
-      }
-      list.innerHTML = profile.orders.map(order => `
+      } else {
+        list.innerHTML = profile.orders.map(order => `
         <article class="order">
           <div>
-            <strong>Замовлення #${order.id} · ${order.status || 'new'}</strong>
+            <strong>Замовлення #${order.id} · ${{
+              new: 'Нове',
+              paid: 'Оплачено',
+              processing: 'В обробці',
+              completed: 'Завершено',
+              cancelled: 'Скасовано'
+            }[order.status] || order.status || 'Нове'}</strong>
             <span>${order.created_at}</span>
             <small>${order.items.map(item => `${item.title || item.game} × ${item.count}`).join(', ')}</small>
           </div>
           <b>${order.total} грн</b>
         </article>
-      `).join('');
+        `).join('');
+      }
       document.getElementById('wishlist-count').textContent = `(${profile.wishlist_count})`;
       Promise.all([fetch('/api/wishlist'), fetch('/api/notifications'), fetch('/api/achievements')])
         .then(async responses => Promise.all(responses.map(response => response.json())))
         .then(([wishlist, notifications, achievements]) => {
           document.getElementById('wishlist-list').innerHTML = wishlist.length
-            ? wishlist.map(item => `<article class="order"><div><strong>${item.title}</strong><small>${item.genre} · ★ ${item.rating}</small></div><a class="button-secondary" href="/biblioteka">Каталог</a></article>`).join('')
+            ? wishlist.map(item => `<article class="order"><div><strong>${item.title}</strong><small>${item.genre} · ★ ${item.rating}</small></div><div class="order-actions"><button class="button-secondary add-wishlist-basket" type="button" data-game="${item.id}">До кошика</button><a class="button-secondary" href="/biblioteka">Каталог</a><button class="text-button remove-wishlist" type="button" data-game="${item.id}">Видалити</button></div></article>`).join('')
             : '<p class="muted">Список бажаного порожній.</p>';
+          document.querySelectorAll('.remove-wishlist').forEach(button => {
+            button.addEventListener('click', async () => {
+              const response = await fetch('/api/wishlist', {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])
+                },
+                body: JSON.stringify({game: button.dataset.game})
+              });
+              document.querySelectorAll('.add-wishlist-basket').forEach(button => {
+                button.addEventListener('click', async () => {
+                  const response = await fetch('/api/basket/add', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])
+                    },
+                    body: JSON.stringify({game: button.dataset.game})
+                  });
+                  if (response.ok) {
+                    button.textContent = 'Додано';
+                    button.disabled = true;
+                  }
+                });
+              });
+              if (!response.ok) return;
+              button.closest('.order').remove();
+              const count = document.querySelectorAll('#wishlist-list .order').length;
+              document.getElementById('wishlist-count').textContent = `(${count})`;
+              if (!count) document.getElementById('wishlist-list').innerHTML = '<p class="muted">Список бажаного порожній.</p>';
+            });
+          });
           document.getElementById('notification-list').innerHTML = notifications.length
-            ? notifications.map(item => `<article class="order"><div><strong>${item.title}</strong><small>${item.message}</small></div></article>`).join('')
+            ? notifications.map(item => `<article class="order ${item.is_read ? '' : 'unread'}"><div><strong>${item.title}</strong><small>${item.message}</small></div></article>`).join('')
             : '<p class="muted">Нових сповіщень немає.</p>';
           document.getElementById('achievement-list').innerHTML = achievements.length
             ? achievements.map(item => `<article class="order"><div><strong>🏆 ${item.title}</strong><small>${item.created_at}</small></div></article>`).join('')
@@ -265,6 +321,38 @@
         document.getElementById('profile-avatar').style.background = settings.avatar_color;
         document.body.dataset.theme = settings.theme;
         applyProfileMedia(settings);
+      }
+    });
+
+    document.getElementById('password-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const message = document.getElementById('password-message');
+      const currentPassword = document.getElementById('current-password').value;
+      const newPassword = document.getElementById('new-password').value;
+      if (newPassword !== document.getElementById('confirm-password').value) {
+        message.textContent = 'Паролі не збігаються.';
+        message.className = 'form-message error';
+        return;
+      }
+      const response = await fetch('/api/profile/password', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])},
+        body: JSON.stringify({current_password: currentPassword, new_password: newPassword})
+      });
+      const result = await response.json();
+      message.textContent = response.ok ? 'Пароль успішно змінено.' : (result.error || 'Не вдалося змінити пароль.');
+      message.className = response.ok ? 'form-message success' : 'form-message error';
+      if (response.ok) event.target.reset();
+    });
+
+    document.getElementById('mark-notifications-read').addEventListener('click', async event => {
+      const response = await fetch('/api/notifications/read', {
+        method: 'POST',
+        headers: {'X-CSRF-Token': decodeURIComponent((document.cookie.match('(?:^|; )csrf_token=([^;]*)') || ['', ''])[1])}
+      });
+      if (response.ok) {
+        document.querySelectorAll('#notification-list .unread').forEach(item => item.classList.remove('unread'));
+        event.currentTarget.textContent = 'Прочитано';
       }
     });
 

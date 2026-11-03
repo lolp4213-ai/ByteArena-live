@@ -46,6 +46,8 @@ async function loadBasket(){
     return;
   }
   const basket = await response.json();
+  const countElement = document.getElementById('basket-count');
+  if (countElement) countElement.textContent = basket.reduce((sum, item) => sum + item.count, 0);
   if(basket.length === 0){
     basketDiv.innerHTML = '<p>Кошик порожній. <a href="/biblioteka">Перейти до каталогу →</a></p>';
     return;
@@ -57,21 +59,27 @@ async function loadBasket(){
   summary.className = 'basket-summary';
   summary.innerHTML = `
     <strong>Разом</strong>
-    <b>${total} грн</b>
+    <b>${total.toFixed(2)} грн</b>
     <input class="coupon-input" placeholder="Промокод" maxlength="32">
+    <p class="basket-message" role="status"></p>
     <button type="button" class="checkout-button">Оформити замовлення</button>
   `;
   summary.querySelector('button').onclick = async () => {
+    const message = summary.querySelector('.basket-message');
+    const button = summary.querySelector('button');
+    button.disabled = true;
     const response = await fetch('/api/basket/checkout', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken()},
       body: JSON.stringify({coupon: summary.querySelector('.coupon-input').value})
     });
+    const result = await response.json().catch(() => ({}));
     if (response.ok) {
       await loadBasket();
-      window.alert('Замовлення успішно оформлено!');
+      window.alert(`Замовлення #${result.order_id} успішно оформлено!`);
     } else {
-      window.alert('Не вдалося оформити замовлення.');
+      message.textContent = result.error || 'Не вдалося оформити замовлення.';
+      button.disabled = false;
     }
   };
   basketDiv.appendChild(summary);
@@ -82,8 +90,8 @@ async function loadBasket(){
     const div = document.createElement('div');
     div.className = 'block';
       div.innerHTML = `
-      <img src="${item.image}" alt="${item.title}">
-      <strong>${item.title}</strong>
+      <img src="${item.image}" alt="">
+      <strong></strong>
       <p>${item.price === 0 ? 'Безкоштовно' : item.price + ' грн'}</p>
       <div class="quantity">
         <button type="button" data-action="decrease" aria-label="Зменшити кількість">−</button>
@@ -91,6 +99,7 @@ async function loadBasket(){
         <button type="button" data-action="increase" aria-label="Збільшити кількість">+</button>
       </div>
     `;
+    div.querySelector('strong').textContent = item.title;
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Видалити';
     removeBtn.onclick = () => removeFromBasket(item.id);

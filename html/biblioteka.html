@@ -34,11 +34,40 @@
     </section>
 
     <section class="catalog-toolbar" aria-label="Фільтри каталогу">
-      <label>Пошук
-        <input id="game-search" type="search" placeholder="Назва або опис..." autocomplete="off">
+      <label class="search-field">Пошук по каталогу
+        <span class="search-input-wrap">
+          <input id="game-search" type="search" placeholder="Назва, жанр, платформа або опис..." autocomplete="off">
+          <button id="clear-game-search" class="clear-search" type="button" aria-label="Очистити пошук" hidden>×</button>
+        </span>
       </label>
       <label>Жанр
         <select id="game-genre"><option value="all">Усі жанри</option></select>
+      </label>
+      <label>Платформа
+        <select id="game-platform">
+          <option value="all">Усі платформи</option>
+          <option value="PC">PC</option>
+          <option value="PlayStation">PlayStation</option>
+          <option value="Xbox">Xbox</option>
+          <option value="Nintendo Switch">Nintendo Switch</option>
+        </select>
+      </label>
+      <label>Ціна до
+        <select id="game-max-price">
+          <option value="">Будь-яка</option>
+          <option value="0">Безкоштовні</option>
+          <option value="500">До 500 грн</option>
+          <option value="1000">До 1000 грн</option>
+          <option value="1500">До 1500 грн</option>
+        </select>
+      </label>
+      <label>Рейтинг від
+        <select id="game-min-rating">
+          <option value="">Будь-який</option>
+          <option value="4">★ 4+</option>
+          <option value="4.5">★ 4.5+</option>
+          <option value="4.8">★ 4.8+</option>
+        </select>
       </label>
       <label>Сортування
         <select id="game-sort">
@@ -48,7 +77,9 @@
           <option value="price-high">Від дорогих</option>
         </select>
       </label>
+      <button id="reset-game-filters" class="reset-filters" type="button">Скинути фільтри</button>
     </section>
+    <p id="games-summary" class="games-summary" aria-live="polite"></p>
 
     <section id="games-list" class="games-grid" aria-live="polite">
       <p>Завантаження каталогу...</p>

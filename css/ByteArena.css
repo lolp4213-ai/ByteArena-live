@@ -76,6 +76,11 @@ a { color: inherit; text-decoration: none; }
 h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.02; letter-spacing: -2px; }
 .hero-text { max-width: 590px; margin: 26px 0 32px; color: var(--muted); font-size: 17px; line-height: 1.7; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; }
+.hero-search { max-width: 600px; margin-top: 30px; }
+.hero-search label { display: block; margin-bottom: 9px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.hero-search-row { display: flex; gap: 10px; }
+.hero-search input { min-width: 0; flex: 1; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: rgba(15, 18, 25, .75); color: var(--text); font: inherit; }
+.hero-search input:focus { outline: 2px solid rgba(230, 57, 70, .5); outline-offset: 2px; }
 .hero-card {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -133,6 +138,7 @@ h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.02; letter-spa
   .hero { grid-template-columns: 1fr; gap: 34px; min-height: auto; padding-top: 58px; }
   .hero-card { max-width: 430px; }
   .benefits { grid-template-columns: 1fr; }
+  .hero-search-row { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) {
   #bg-video { display: none; }

@@ -37,6 +37,13 @@
           <a class="button-primary" href="/biblioteka">Переглянути каталог</a>
           <a class="button-ghost" href="/about">Дізнатися більше</a>
         </div>
+        <form class="hero-search" action="/biblioteka" method="get" role="search">
+          <label for="hero-game-search">Пошук по каталогу</label>
+          <div class="hero-search-row">
+            <input id="hero-game-search" name="q" type="search" placeholder="Наприклад, RPG або Ghost..." autocomplete="off">
+            <button class="button-primary" type="submit">Знайти</button>
+          </div>
+        </form>
       </div>
       <div class="hero-card">
         <span class="hero-card-label">ПОПУЛЯРНЕ ЗАРАЗ</span>

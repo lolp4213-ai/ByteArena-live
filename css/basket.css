@@ -46,6 +46,8 @@ h1 { margin: 0 0 12px; font-size: clamp(36px, 5vw, 58px); }
 .basket-summary { position: sticky; top: 20px; display: grid; gap: 12px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
 .basket-summary b { color: #ff8c95; font-size: 24px; }
 .checkout-button { padding: 12px; border: 0; border-radius: 9px; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+.checkout-button:disabled { cursor: wait; opacity: .6; }
+.basket-message { min-height: 18px; margin: 0; color: #ff8c95; font-size: 12px; }
 .coupon-input { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #0e1117; color: var(--text); }
 .coupon-hint { color: var(--muted); font-size: 13px; }
 .block { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
