@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const minRating = document.getElementById('game-min-rating');
   const sort = document.getElementById('game-sort');
   const resetFilters = document.getElementById('reset-game-filters');
+  const recommendations = document.getElementById('recommendations-list');
   const clearSearch = document.getElementById('clear-game-search');
   const summary = document.getElementById('games-summary');
   let wishlist = new Set();
@@ -25,6 +26,19 @@ document.addEventListener('DOMContentLoaded', function(){
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   }[character]));
+
+  if (recommendations) {
+    fetch('/api/recommendations').then(response => response.json()).then(games => {
+      recommendations.innerHTML = games.length ? games.map(game => `
+        <a class="recommendation-card" href="/biblioteka?q=${encodeURIComponent(game.title)}">
+          <img src="${escapeHtml(game.image)}" alt="">
+          <strong>${escapeHtml(game.title)}</strong>
+          <small>${escapeHtml(game.genre)} · ★ ${escapeHtml(game.rating)}</small>
+        </a>`).join('') : '<p>Переглянь ігри, щоб отримати персональні рекомендації.</p>';
+    }).catch(() => {
+      recommendations.innerHTML = '<p>Рекомендації тимчасово недоступні.</p>';
+    });
+  }
 
   fetch('/api/wishlist').then(response => response.ok ? response.json() : []).then(items => {
     wishlist = new Set(items.map(item => item.id));

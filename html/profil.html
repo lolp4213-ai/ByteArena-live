@@ -352,7 +352,7 @@
             ? notifications.map(item => `<article class="order ${item.is_read ? '' : 'unread'}"><div><strong>${item.title}</strong><small>${item.message}</small></div></article>`).join('')
             : '<p class="muted">Нових сповіщень немає.</p>';
           document.getElementById('achievement-list').innerHTML = achievements.length
-            ? achievements.map(item => `<article class="order"><div><strong>🏆 ${item.title}</strong><small>${item.created_at}</small></div></article>`).join('')
+            ? achievements.map(item => `<article class="order"><div><strong>🏆 ${item.title}</strong><small>${item.rarity} · +${item.xp} XP · ${item.created_at}</small></div></article>`).join('')
             : '<p class="muted">Досягнень ще немає.</p>';
         }).catch(() => {});
     }).catch(() => { window.location.href = '/login'; });

@@ -691,6 +691,43 @@ def api_game_genres():
     conn.close()
     return jsonify(genres)
 
+@app.route('/api/recommendations')
+def api_recommendations():
+    user = current_user()
+    conn = get_db()
+    if user:
+        favorite_genres = [
+            row['genre'] for row in conn.execute("""
+                SELECT games.genre
+                FROM wishlist JOIN games ON games.id=wishlist.game
+                WHERE wishlist.user=?
+            """, (user,)).fetchall()
+        ]
+        owned = {
+            row['game'] for row in conn.execute(
+                'SELECT game FROM game_library WHERE user=?', (user,)
+            ).fetchall()
+        }
+    else:
+        favorite_genres = []
+        owned = set()
+    genre = favorite_genres[0] if favorite_genres else None
+    params = []
+    where = ''
+    if genre:
+        where = 'WHERE genre=?'
+        params.append(genre)
+    if owned:
+        marks = ','.join('?' for _ in owned)
+        where += (' AND ' if where else 'WHERE ') + f'id NOT IN ({marks})'
+        params.extend(owned)
+    rows = conn.execute(
+        f'SELECT * FROM games {where} ORDER BY rating DESC, rowid DESC LIMIT 4',
+        params
+    ).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows])
+
 @app.route('/api/basket/checkout', methods=['POST'])
 def api_basket_checkout():
     user = current_user()
@@ -909,7 +946,21 @@ def api_achievements():
         (user,)
     ).fetchall()
     conn.close()
-    return jsonify([dict(row) for row in rows])
+    definitions = {
+        'first-order': ('Перше замовлення', 'common', 100),
+        'first-wishlist': ('Перша гра у списку бажаного', 'common', 50),
+        'first-review': ('Перший відгук', 'rare', 100),
+        'first-complete': ('Перша пройдена гра', 'rare', 150),
+        'five-orders': ('П’ять оформлених замовлень', 'epic', 300),
+    }
+    return jsonify([
+        {
+            **dict(row),
+            'rarity': definitions.get(row['code'], ('', 'common', 50))[1],
+            'xp': definitions.get(row['code'], ('', 'common', 50))[2]
+        }
+        for row in rows
+    ])
 
 @app.route('/api/profile', methods=['GET'])
 def api_profile():
