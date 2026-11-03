@@ -152,7 +152,13 @@ def profile_alias():
 
 @app.route('/library')
 def library_alias():
-    return redirect(url_for('biblioteka'))
+    return redirect(url_for('my_library'))
+
+@app.route('/my-library')
+def my_library():
+    if not current_user():
+        return redirect(url_for('login') + '?msg=required')
+    return send_from_directory(HTML_DIR, 'library.html')
 
 @app.route('/store')
 def store_alias():
@@ -191,6 +197,19 @@ def init_db():
             image TEXT NOT NULL,
             rating REAL NOT NULL DEFAULT 0,
             is_free INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS game_library (
+            user TEXT NOT NULL,
+            game TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'not_started',
+            personal_rating INTEGER,
+            playtime_minutes INTEGER NOT NULL DEFAULT 0,
+            added_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user, game),
+            FOREIGN KEY (game) REFERENCES games(id)
         )
     """)
     cur.execute("""
@@ -709,12 +728,78 @@ def api_basket_checkout():
             'INSERT INTO order_items (order_id, game, count, price) VALUES (?, ?, ?, ?)',
             (cursor.lastrowid, row['game'], row['count'], row['price'])
         )
+        conn.execute(
+            """INSERT INTO game_library (user, game)
+               VALUES (?, ?)
+               ON CONFLICT(user, game) DO NOTHING""",
+            (user, row['game'])
+        )
     conn.execute('DELETE FROM basket WHERE user=?', (user,))
     conn.commit()
     conn.close()
     add_notification(user, 'Замовлення оформлено', f'Замовлення #{cursor.lastrowid} успішно створено.')
     unlock_achievements(user)
     return jsonify({'ok': True, 'order_id': cursor.lastrowid, 'total': total})
+
+@app.route('/api/library', methods=['GET'])
+def api_library():
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'not logged in'}), 401
+    status = request.args.get('status', '').strip()
+    query = request.args.get('q', '').strip()
+    clauses = ['game_library.user=?']
+    params = [user]
+    if status in {'not_started', 'playing', 'completed'}:
+        clauses.append('game_library.status=?')
+        params.append(status)
+    if query:
+        clauses.append('(games.title LIKE ? OR games.genre LIKE ?)')
+        params.extend([f'%{query}%', f'%{query}%'])
+    where = ' AND '.join(clauses)
+    conn = get_db()
+    rows = conn.execute(f"""
+        SELECT game_library.game, game_library.status, game_library.personal_rating,
+               game_library.playtime_minutes, game_library.added_at, game_library.updated_at,
+               games.title, games.description, games.genre, games.platform, games.image, games.rating
+        FROM game_library JOIN games ON games.id=game_library.game
+        WHERE {where}
+        ORDER BY game_library.updated_at DESC, games.title
+    """, params).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows])
+
+@app.route('/api/library/<game_id>', methods=['PATCH'])
+def api_library_update(game_id):
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'not logged in'}), 401
+    payload = request.get_json(silent=True) or {}
+    status = str(payload.get('status', '')).strip()
+    try:
+        personal_rating = payload.get('personal_rating')
+        personal_rating = None if personal_rating in (None, '') else int(personal_rating)
+        playtime_minutes = int(payload.get('playtime_minutes', 0))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid library values'}), 400
+    if status not in {'not_started', 'playing', 'completed'}:
+        return jsonify({'error': 'invalid library status'}), 400
+    if personal_rating is not None and not 1 <= personal_rating <= 5:
+        return jsonify({'error': 'rating must be between 1 and 5'}), 400
+    if not 0 <= playtime_minutes <= 1000000:
+        return jsonify({'error': 'invalid playtime'}), 400
+    conn = get_db()
+    updated = conn.execute("""
+        UPDATE game_library
+        SET status=?, personal_rating=?, playtime_minutes=?, updated_at=CURRENT_TIMESTAMP
+        WHERE user=? AND game=?
+    """, (status, personal_rating, playtime_minutes, user, game_id)).rowcount
+    conn.commit()
+    conn.close()
+    if not updated:
+        return jsonify({'error': 'game is not in library'}), 404
+    unlock_achievements(user)
+    return jsonify({'ok': True})
 
 @app.route('/api/wishlist', methods=['GET', 'POST', 'DELETE'])
 def api_wishlist():
@@ -1042,6 +1127,11 @@ def unlock_achievements(user):
          conn.execute('SELECT 1 FROM wishlist WHERE user=? LIMIT 1', (user,)).fetchone()),
         ('first-review', 'Перший відгук',
          conn.execute('SELECT 1 FROM reviews WHERE user=? LIMIT 1', (user,)).fetchone()),
+        ('first-complete', 'Перша пройдена гра',
+         conn.execute(
+             "SELECT 1 FROM game_library WHERE user=? AND status='completed' LIMIT 1",
+             (user,)
+         ).fetchone()),
         ('five-orders', 'П’ять оформлених замовлень',
          conn.execute('SELECT COUNT(*) AS count FROM orders WHERE user=?', (user,)).fetchone()['count'] >= 5),
     ]

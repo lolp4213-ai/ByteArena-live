@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Моя бібліотека — ByteArena</title>
+  <link rel="stylesheet" href="/css/library.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="/bytearena">BYTEARENA</a>
+    <button class="menu-toggle" type="button" aria-label="Відкрити меню" aria-expanded="false">☰</button>
+    <nav class="site-nav">
+      <a href="/bytearena">Головна</a>
+      <a href="/biblioteka">Магазин</a>
+      <a class="active" href="/my-library">Моя бібліотека</a>
+      <a href="/profil">Профіль</a>
+      <a href="/portfolio">Кошик</a>
+      <a class="nav-button" href="/logout">Вийти</a>
+    </nav>
+  </header>
+  <main class="library-page">
+    <section class="library-heading">
+      <div>
+        <p class="eyebrow">YOUR COLLECTION</p>
+        <h1>Моя бібліотека</h1>
+        <p>Керуй прогресом, оцінками та часом у своїх іграх.</p>
+      </div>
+      <a class="button-primary" href="/biblioteka">Знайти нову гру</a>
+    </section>
+    <section class="library-toolbar" aria-label="Фільтри бібліотеки">
+      <input id="library-search" type="search" placeholder="Пошук у бібліотеці..." autocomplete="off">
+      <div class="status-tabs">
+        <button class="status-tab active" data-status="" type="button">Усі</button>
+        <button class="status-tab" data-status="not_started" type="button">Не зіграна</button>
+        <button class="status-tab" data-status="playing" type="button">Граю</button>
+        <button class="status-tab" data-status="completed" type="button">Пройдена</button>
+      </div>
+    </section>
+    <p id="library-summary" class="library-summary" aria-live="polite"></p>
+    <section id="library-list" class="library-grid" aria-live="polite">
+      <p class="empty-state">Завантаження бібліотеки...</p>
+    </section>
+  </main>
+  <footer class="site-footer">© 2026 ByteArena</footer>
+  <script src="/static/js/library.js"></script>
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.site-nav');
+    menuButton.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', open);
+    });
+  </script>
+</body>
+</html>
